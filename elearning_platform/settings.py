@@ -154,6 +154,17 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+# CSRF Settings for Replit
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.replit.dev",
+    "https://*.replit.co",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+]
+
+# Additional security settings for Replit
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
