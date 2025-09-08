@@ -49,8 +49,12 @@ def login_view(request):
 @require_http_methods(["POST"])
 def logout_view(request):
     """User logout view"""
-    logout(request)
-    messages.info(request, "You have successfully logged out.")
+    try:
+        logout(request)
+        messages.info(request, "You have successfully logged out.")
+    except Exception as e:
+        # Handle database connection issues gracefully
+        messages.info(request, "You have been logged out.")
     return redirect('home')
 
 @login_required

@@ -1,0 +1,149 @@
+OperationalError at /accounts/logout/
+SSL connection has been closed unexpectedly
+Request Method:	POST
+Request URL:	http://21d90348-a400-40b8-9714-d3fc065dedd1-00-1j7b2wl5vlfpc.kirk.replit.dev/accounts/logout/
+Django Version:	5.2.6
+Exception Type:	OperationalError
+Exception Value:	
+SSL connection has been closed unexpectedly
+Exception Location:	/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 105, in _execute
+Raised during:	accounts.views.logout_view
+Python Executable:	/home/runner/workspace/.pythonlibs/bin/python
+Python Version:	3.11.13
+Python Path:	
+['/home/runner/workspace',
+ '/nix/store/zz7i75jb78idaz0rb1y1i4rzdyxq28vf-sitecustomize/lib/python/site-packages',
+ '/nix/store/yaps09f01jp3fd1405qlr0qz6haf6z03-python3.11-pip-25.0.1/lib/python3.11/site-packages',
+ '/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python311.zip',
+ '/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11',
+ '/nix/store/7d088dip86hlzri9sk0h78b63yfmx0a0-python3-3.11.13/lib/python3.11/lib-dynload',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/nix/store/y0iwy8ma2m45pr23bw4r7lyz69v2b6wf-python3.11-setuptools-80.7.1/lib/python3.11/site-packages']
+Server time:	Mon, 08 Sep 2025 10:54:15 +0000
+Traceback Switch to copy-and-paste view
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 105, in _execute
+                return self.cursor.execute(sql, params)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+The above exception (SSL connection has been closed unexpectedly ) was the direct cause of the following exception:
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/core/handlers/exception.py, line 55, in inner
+                response = get_response(request)
+                               ^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/core/handlers/base.py, line 197, in _get_response
+                response = wrapped_callback(request, *callback_args, **callback_kwargs)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/views/decorators/http.py, line 64, in inner
+                return func(request, *args, **kwargs)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/accounts/views.py, line 52, in logout_view
+    logout(request)
+        ^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/contrib/auth/__init__.py, line 254, in logout
+    request.session.flush()
+         ^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/contrib/sessions/backends/base.py, line 418, in flush
+        self.delete()
+             ^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/contrib/sessions/backends/db.py, line 175, in delete
+            self.model.objects.get(session_key=session_key).delete()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/manager.py, line 87, in manager_method
+                return getattr(self.get_queryset(), name)(*args, **kwargs)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/query.py, line 629, in get
+        num = len(clone)
+                   ^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/query.py, line 366, in __len__
+        self._fetch_all()
+             ^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/query.py, line 1949, in _fetch_all
+            self._result_cache = list(self._iterable_class(self))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/query.py, line 91, in __iter__
+        results = compiler.execute_sql(
+                       …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/models/sql/compiler.py, line 1623, in execute_sql
+            cursor.execute(sql, params)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 122, in execute
+            return super().execute(sql, params)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 79, in execute
+        return self._execute_with_wrappers(
+                    …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 92, in _execute_with_wrappers
+        return executor(sql, params, many, context)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 100, in _execute
+        with self.db.wrap_database_errors:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/utils.py, line 91, in __exit__
+                raise dj_exc_value.with_traceback(traceback) from exc_value
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/db/backends/utils.py, line 105, in _execute
+                return self.cursor.execute(sql, params)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ …
+Local vars
+Request information
+USER
+krrish (teacher)
+
+GET
+No GET data
+
+POST
+Variable	Value
+csrfmiddlewaretoken	
+'PPYYEqGUmbYkQ2BnlLCD1EEUEdtDJZzpBh2y3WOmQ2N0NKQKL6tAxMYJhBCNKbI8'
+FILES
+No FILES data
+
+COOKIES
+Variable	Value
+csrftoken	
+'********************'
+sessionid	
+'********************'
+META
+Variable	Value
+CFLAGS	
+('-isystem /nix/store/rxd3kdsc7k72198g58wk0qp3xdip5x5d-zlib-1.3.1-dev/include '
+ '-isystem /nix/store/wjqj8ncgdxqpn78qp23blp5ijprpavp9-bzip2-1.0.8-dev/include '
+ '-isystem /nix/store/mijswdfwx4yvqpfrxg6c0cs228w9v7ll-zstd-1.5.7-dev/include '
+ '-isystem '
+ '/nix/store/skgkpw072rb1vff56y2yfiw1ahmjkac9-libjpeg-turbo-3.0.4-dev_private/include '
+ '-isystem '
+ '/nix/store/a92yy00dna3mpxl0ab9mzs8vbyc6qnfc-openjpeg-2.5.2-dev/include '
+ '-isystem /nix/store/glmlgiwv29vn9jaskk42byy0w6szph1c-libwebp-1.5.0/include '
+ '-isystem '
+ '/nix/store/xdczp4bkrp2dff2apb1vbybbfmfi8f7d-brotli-1.1.0-dev/include '
+ '-isystem /nix/store/m9rqkx8s9a45wivak202kiw7p11xp6n5-libwebp-1.5.0/include '
+ '-isystem '
+ '/nix/store/wp4nmh0byqn6w9885q10qm6v0vxq8m28-libxcb-1.17.0-dev/include '
+ '-isystem '
+ '/nix/store/w3y3kkvf7q5pky33pq97y6gdrhsc09qa-libtiff-4.7.0-dev_private/include '
+ '-isystem '
+ '/nix/store/b2aj478jxny0yvwqr6zglcmp99r3563b-libX11-1.8.12-dev/include '
+ '-isystem '
+ '/nix/store/b6y8k7i7bgkld9bgjjnsv5bqf2anq7yk-libjpeg-turbo-3.0.4-dev/include '
+ '-isystem '
+ '/nix/store/yl4f9w6g0msqj3nfmyndvkwh8bpcpp04-libtiff-4.7.0-dev/include '
