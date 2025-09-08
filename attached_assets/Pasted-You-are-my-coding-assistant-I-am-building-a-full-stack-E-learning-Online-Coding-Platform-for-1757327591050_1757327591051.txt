@@ -1,0 +1,75 @@
+You are my coding assistant.  
+I am building a full-stack *E-learning + Online Coding Platform* for my university.  
+I already have a basic project structure on Replit. Now I want you to extend it and add the following core features with clean, modular, and well-commented code:
+
+---
+
+### Core Features (Must Have)
+
+1. *User Authentication System*
+   - Implement Login / Registration for three roles: Students, Teachers, Admin.
+   - Use role-based access control (students can only access courses, teachers can create/manage courses, admin has full control).
+
+2. *Course Management System*
+   - Teachers/University staff can create new courses (e.g., "Introduction to Python", "Data Structures in C++").
+   - Each course can have lectures (video, text, pdf).
+   - Teachers can add Assignments and Quizzes.
+
+3. *Integrated Online Code Compiler*
+   - Students can write and run code directly inside the platform.
+   - Integrate a compiler API (prefer Judge0 API or Sphere Engine API).
+   - Support multiple languages (C, C++, Java, Python, JavaScript).
+
+4. *Assignments & Auto-Grading*
+   - Teachers provide problem statements.
+   - Students submit code.
+   - System runs code against hidden test cases.
+   - Auto-check results and return pass/fail + score.
+
+5. *Progress Tracking*
+   - Student Dashboard shows:
+     - Completed lectures
+     - Pending assignments
+     - Overall progress
+   - Teachers can see which students are active and their progress.
+
+6. *Discussion Forum / Doubt Section*
+   - Students can ask questions.
+   - Teachers (and peers) can answer.
+
+7. *Certificates*
+   - Generate a university-branded certificate after course completion.
+   - Auto-generate certificate (PDF format) with student name, course name, and completion date.
+
+---
+
+### 🎨 UI/UX Requirements
+- *Homepage* → University branding + list of available coding courses.
+- *Student Dashboard* →
+  - Enrolled courses
+  - Progress tracker
+  - Upcoming assignments/deadlines
+- *Course Page* →
+  - Left side: Lectures list (videos, notes, pdfs)
+  - Right side: Lecture content with integrated code editor (similar to LeetCode/HackerRank)
+- *Coding Environment* →
+  - Text editor with syntax highlighting
+  - Input/Output window
+  - Run & Submit buttons
+
+---
+
+### Technical Notes
+- Write production-ready code.
+- Keep folder structure clean (frontend, backend, database).
+- Use comments to explain important parts.
+- Use a database (SQLite or PostgreSQL) for storing users, courses, assignments, submissions, and progress.
+- Make the platform responsive (works on desktop + mobile).
+- Use TailwindCSS for styling (if frontend is web-based).
+- For backend: Django
+- Ensure smooth integration between frontend and backend.
+
+---
+
+⚡️ Now, extend my existing Replit project with these features step by step. 
+Always show me which files you are updating and explain changes in simple terms.
