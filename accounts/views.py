@@ -34,11 +34,11 @@ def login_view(request):
                 messages.info(request, f"You are now logged in as {username}.")
                 # Redirect based on user role
                 if user.is_admin:
-                    return redirect('admin_dashboard')
+                    return redirect('accounts:admin_dashboard')
                 elif user.is_teacher:
-                    return redirect('teacher_dashboard')
+                    return redirect('accounts:teacher_dashboard')
                 else:
-                    return redirect('student_dashboard')
+                    return redirect('accounts:student_dashboard')
             else:
                 messages.error(request, "Invalid username or password.")
         else:
