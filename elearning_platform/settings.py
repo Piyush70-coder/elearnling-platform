@@ -172,3 +172,6 @@ LOGOUT_REDIRECT_URL = '/'
 # Judge0 API Configuration (for code compilation)
 JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com'
 JUDGE0_API_KEY = ''  # Will be set via environment variable later
+
+# Custom User Model
+AUTH_USER_MODEL = 'accounts.User'
