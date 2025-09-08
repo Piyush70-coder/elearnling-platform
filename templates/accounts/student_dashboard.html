@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - EduCode University{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Student Dashboard</h1>
+        <p class="mt-2 text-gray-600">Welcome back, {{ user.username }}! Track your progress and continue learning.</p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-book text-primary text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Enrolled Courses</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ total_courses }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-line text-green-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Average Progress</dt>
+                            <dd class="text-lg font-medium text-gray-900">
+                                {% if enrollments %}
+                                    {{ enrollments|first.completion_percentage|default:0|floatformat:1 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-tasks text-yellow-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Pending Assignments</dt>
+                            <dd class="text-lg font-medium text-gray-900">0</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Enrolled Courses -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">My Courses</h3>
+                {% if enrollments %}
+                    <div class="space-y-4">
+                        {% for enrollment in enrollments %}
+                            <div class="border rounded-lg p-4 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-lg font-medium text-gray-900">{{ enrollment.course.title }}</h4>
+                                        <p class="text-sm text-gray-500">{{ enrollment.course.code }}</p>
+                                        <p class="text-sm text-gray-600 mt-1">Instructor: {{ enrollment.course.instructor.get_full_name|default:enrollment.course.instructor.username }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ enrollment.completion_percentage|floatformat:1 }}% Complete
+                                        </div>
+                                        <div class="w-32 bg-gray-200 rounded-full h-2 mt-1">
+                                            <div class="bg-primary h-2 rounded-full" style="width: {{ enrollment.completion_percentage }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-between items-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ enrollment.course.programming_language|capfirst }}
+                                    </span>
+                                    <a href="#" class="text-primary hover:text-blue-700 text-sm font-medium">Continue Learning →</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-book-open text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500 mb-4">You haven't enrolled in any courses yet.</p>
+                        <a href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-blue-700">
+                            Browse Courses
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Recent Activity</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-green-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-900">Assignment submitted</p>
+                            <p class="text-xs text-gray-500">Python Basics - Hello World</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-play text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-900">Started new lecture</p>
+                            <p class="text-xs text-gray-500">Introduction to Variables</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0 w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-star text-yellow-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-900">Enrolled in course</p>
+                            <p class="text-xs text-gray-500">Data Structures in Python</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="#" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-search text-2xl text-primary mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Browse Courses</span>
+                </a>
+                <a href="#" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-code text-2xl text-green-500 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Practice Coding</span>
+                </a>
+                <a href="#" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-comments text-2xl text-blue-500 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Ask Questions</span>
+                </a>
+                <a href="#" class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-certificate text-2xl text-purple-500 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">View Certificates</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
