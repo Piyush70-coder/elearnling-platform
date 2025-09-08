@@ -38,7 +38,9 @@
                             <dt class="text-sm font-medium text-gray-500 truncate">Average Progress</dt>
                             <dd class="text-lg font-medium text-gray-900">
                                 {% if enrollments %}
-                                    {{ enrollments|first.completion_percentage|default:0|floatformat:1 }}%
+                                    {% with first_enrollment=enrollments|first %}
+                                        {{ first_enrollment.completion_percentage|default:0|floatformat:1 }}%
+                                    {% endwith %}
                                 {% else %}
                                     0%
                                 {% endif %}
