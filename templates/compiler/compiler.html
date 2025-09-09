@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+
+{% block title %}Online Code Compiler - EduCode University{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Online Code Compiler</h1>
+        <p class="mt-2 text-gray-600">Write, compile, and execute code in multiple programming languages</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Code Editor Section -->
+        <div class="lg:col-span-2">
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <label for="language-select" class="text-sm font-medium text-gray-700">Language:</label>
+                            <select id="language-select" class="form-select rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50">
+                                {% for lang_code, lang_name in supported_languages %}
+                                    <option value="{{ lang_code }}">{{ lang_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button id="load-template" class="px-3 py-2 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                                <i class="fas fa-file-code mr-1"></i> Template
+                            </button>
+                            <button id="clear-code" class="px-3 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                                <i class="fas fa-trash mr-1"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    <div class="mb-4">
+                        <label for="code-editor" class="block text-sm font-medium text-gray-700 mb-2">Source Code</label>
+                        <textarea id="code-editor" 
+                                  rows="20" 
+                                  class="w-full font-mono text-sm border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                                  placeholder="Write your code here..."># Python code
+print("Hello, World!")</textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="stdin-input" class="block text-sm font-medium text-gray-700 mb-2">Input (stdin)</label>
+                        <textarea id="stdin-input" 
+                                  rows="3" 
+                                  class="w-full font-mono text-sm border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                                  placeholder="Enter input for your program (optional)"></textarea>
+                    </div>
+                    
+                    <button id="run-code" class="w-full bg-primary text-white py-3 px-4 rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-play mr-2"></i> Run Code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output and History Section -->
+        <div class="space-y-6">
+            <!-- Output Panel -->
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-medium text-gray-900">Output</h3>
+                </div>
+                <div class="p-4">
+                    <div id="loading-indicator" class="hidden text-center py-4">
+                        <i class="fas fa-spinner fa-spin text-2xl text-primary"></i>
+                        <p class="mt-2 text-gray-600">Executing code...</p>
+                    </div>
+                    
+                    <div id="output-section" class="space-y-4">
+                        <div id="stdout-output" class="hidden">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Output:</h4>
+                            <pre class="bg-gray-100 p-3 rounded-md text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto"></pre>
+                        </div>
+                        
+                        <div id="stderr-output" class="hidden">
+                            <h4 class="text-sm font-medium text-red-700 mb-2">Error:</h4>
+                            <pre class="bg-red-50 p-3 rounded-md text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto text-red-800"></pre>
+                        </div>
+                        
+                        <div id="compile-output" class="hidden">
+                            <h4 class="text-sm font-medium text-yellow-700 mb-2">Compilation:</h4>
+                            <pre class="bg-yellow-50 p-3 rounded-md text-sm font-mono whitespace-pre-wrap max-h-40 overflow-y-auto text-yellow-800"></pre>
+                        </div>
+                        
+                        <div id="execution-stats" class="hidden">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Time:</span>
+                                    <span id="exec-time" class="font-mono">--</span>s
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Memory:</span>
+                                    <span id="exec-memory" class="font-mono">--</span> KB
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="no-output" class="text-gray-500 text-center py-8">
+                            <i class="fas fa-code text-4xl text-gray-300 mb-3"></i>
+                            <p>Run your code to see the output here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Executions -->
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                    <h3 class="text-lg font-medium text-gray-900">Recent Executions</h3>
+                </div>
+                <div class="p-4">
+                    {% if recent_executions %}
+                        <div class="space-y-3">
+                            {% for execution in recent_executions %}
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                                            {% if execution.status == 'completed' %}bg-green-100 text-green-800
+                                            {% elif execution.status == 'error' %}bg-red-100 text-red-800
+                                            {% elif execution.status == 'processing' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ execution.get_status_display }}
+                                        </span>
+                                        <span class="text-sm font-medium text-gray-700">{{ execution.get_language_display }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ execution.created_at|date:"M d, H:i" }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-gray-500 text-center py-8">
+                            <i class="fas fa-history text-4xl text-gray-300 mb-3"></i>
+                            <p>No executions yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Code Compiler JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const languageSelect = document.getElementById('language-select');
+    const codeEditor = document.getElementById('code-editor');
+    const stdinInput = document.getElementById('stdin-input');
+    const runButton = document.getElementById('run-code');
+    const loadTemplateButton = document.getElementById('load-template');
+    const clearCodeButton = document.getElementById('clear-code');
+    
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const outputSection = document.getElementById('output-section');
+    const noOutput = document.getElementById('no-output');
+    const stdoutOutput = document.getElementById('stdout-output');
+    const stderrOutput = document.getElementById('stderr-output');
+    const compileOutput = document.getElementById('compile-output');
+    const executionStats = document.getElementById('execution-stats');
+    
+    // CSRF token for Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Load code template
+    loadTemplateButton.addEventListener('click', function() {
+        const language = languageSelect.value;
+        fetch(`/compiler/template/${language}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    codeEditor.value = data.template;
+                } else {
+                    alert('Failed to load template');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading template:', error);
+                alert('Failed to load template');
+            });
+    });
+    
+    // Clear code
+    clearCodeButton.addEventListener('click', function() {
+        if (confirm('Are you sure you want to clear the code?')) {
+            codeEditor.value = '';
+            stdinInput.value = '';
+            hideAllOutputs();
+        }
+    });
+    
+    // Run code
+    runButton.addEventListener('click', function() {
+        const language = languageSelect.value;
+        const sourceCode = codeEditor.value.trim();
+        const stdinData = stdinInput.value;
+        
+        if (!sourceCode) {
+            alert('Please enter some code to execute');
+            return;
+        }
+        
+        // Show loading
+        showLoading();
+        runButton.disabled = true;
+        
+        // Submit code for execution
+        fetch('/compiler/execute/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                language: language,
+                source_code: sourceCode,
+                stdin: stdinData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            runButton.disabled = false;
+            
+            if (data.success) {
+                displayResults(data);
+            } else {
+                displayError(data.error || 'Unknown error occurred');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            runButton.disabled = false;
+            console.error('Error executing code:', error);
+            displayError('Network error occurred');
+        });
+    });
+    
+    function showLoading() {
+        loadingIndicator.classList.remove('hidden');
+        noOutput.classList.add('hidden');
+        hideAllOutputs();
+    }
+    
+    function hideLoading() {
+        loadingIndicator.classList.add('hidden');
+    }
+    
+    function hideAllOutputs() {
+        stdoutOutput.classList.add('hidden');
+        stderrOutput.classList.add('hidden');
+        compileOutput.classList.add('hidden');
+        executionStats.classList.add('hidden');
+        noOutput.classList.remove('hidden');
+    }
+    
+    function displayResults(data) {
+        noOutput.classList.add('hidden');
+        
+        // Display stdout
+        if (data.stdout && data.stdout.trim()) {
+            stdoutOutput.querySelector('pre').textContent = data.stdout;
+            stdoutOutput.classList.remove('hidden');
+        }
+        
+        // Display stderr
+        if (data.stderr && data.stderr.trim()) {
+            stderrOutput.querySelector('pre').textContent = data.stderr;
+            stderrOutput.classList.remove('hidden');
+        }
+        
+        // Display compile output
+        if (data.compile_output && data.compile_output.trim()) {
+            compileOutput.querySelector('pre').textContent = data.compile_output;
+            compileOutput.classList.remove('hidden');
+        }
+        
+        // Display execution stats
+        if (data.execution_time !== null || data.memory_used !== null) {
+            document.getElementById('exec-time').textContent = data.execution_time || '--';
+            document.getElementById('exec-memory').textContent = data.memory_used || '--';
+            executionStats.classList.remove('hidden');
+        }
+        
+        // Show success message if no output
+        if (!data.stdout && !data.stderr && !data.compile_output) {
+            noOutput.innerHTML = '<i class="fas fa-check-circle text-4xl text-green-300 mb-3"></i><p>Code executed successfully with no output</p>';
+            noOutput.classList.remove('hidden');
+        }
+    }
+    
+    function displayError(error) {
+        noOutput.classList.add('hidden');
+        stderrOutput.querySelector('pre').textContent = error;
+        stderrOutput.classList.remove('hidden');
+    }
+    
+    // Load template on language change
+    languageSelect.addEventListener('change', function() {
+        if (confirm('Load template for ' + languageSelect.options[languageSelect.selectedIndex].text + '? This will replace your current code.')) {
+            loadTemplateButton.click();
+        }
+    });
+});
+</script>
+{% endblock %}
