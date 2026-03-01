@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} | {{ assignment.course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Assignment Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800">{{ assignment.title }}</h1>
+            <span class="px-3 py-1 rounded-full text-sm font-medium
+                {% if assignment.difficulty == 'easy' %}bg-green-100 text-green-800{% endif %}
+                {% if assignment.difficulty == 'medium' %}bg-yellow-100 text-yellow-800{% endif %}
+                {% if assignment.difficulty == 'hard' %}bg-red-100 text-red-800{% endif %}
+            ">
+                {{ assignment.get_difficulty_display }}
+            </span>
+        </div>
+        <p class="text-sm text-gray-600 mt-1">{{ assignment.course.code }} - {{ assignment.course.title }}</p>
+        <div class="flex items-center mt-4 text-sm text-gray-600">
+            <div class="mr-6">
+                <span class="font-medium">Due Date:</span> 
+                <span>{{ assignment.due_date|date:"F j, Y, g:i a" }}</span>
+            </div>
+            <div class="mr-6">
+                <span class="font-medium">Max Score:</span> 
+                <span>{{ assignment.max_score }}</span>
+            </div>
+            <div>
+                <span class="font-medium">Language:</span> 
+                <span>{{ assignment.get_programming_language_display }}</span>
+            </div>
+        </div>
+        
+        <!-- Assignment Files Links -->
+        <div class="flex mt-4 space-x-4">
+            {% if assignment.assignment_file %}
+            <a href="{% url 'assignments:view_uploads' assignment.id %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                View Assignment Files
+            </a>
+            {% endif %}
+            
+            {% if user.profile.is_teacher and assignment.course.teachers.all %}
+            <a href="{% url 'assignments:manage_uploads' assignment.id %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                </svg>
+                Manage Assignment Files
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Assignment Description -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Description</h2>
+        <div class="prose max-w-none">
+            {{ assignment.description|linebreaks }}
+        </div>
+    </div>
+
+    <!-- Problem Statement -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Problem Statement</h2>
+        <div class="prose max-w-none">
+            {{ assignment.problem_statement|linebreaks }}
+        </div>
+
+        {% if assignment.constraints %}
+        <h3 class="text-lg font-medium mt-6 mb-2">Constraints</h3>
+        <div class="bg-gray-50 p-4 rounded-md">
+            <pre class="whitespace-pre-wrap">{{ assignment.constraints }}</pre>
+        </div>
+        {% endif %}
+
+        {% if assignment.sample_input and assignment.sample_output %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div>
+                <h3 class="text-lg font-medium mb-2">Sample Input</h3>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <pre class="whitespace-pre-wrap">{{ assignment.sample_input }}</pre>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-medium mb-2">Sample Output</h3>
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <pre class="whitespace-pre-wrap">{{ assignment.sample_output }}</pre>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Code Editor -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Your Solution</h2>
+        <div class="mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <label for="code" class="block text-sm font-medium text-gray-700">Code</label>
+                <div class="text-xs text-gray-500" id="code-size-indicator">0/65536</div>
+            </div>
+            <textarea id="code" name="code" rows="15" 
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm"
+                placeholder="Write your code here...">{{ starter_code }}</textarea>
+        </div>
+
+        <div class="flex justify-end space-x-4">
+            <button type="button" id="reset-code" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Reset to Starter Code
+            </button>
+            <button type="button" id="submit-code" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Submit Solution
+            </button>
+        </div>
+    </div>
+
+    <!-- Previous Submissions -->
+    {% if submissions %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Your Submissions</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for submission in submissions %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ submission.submitted_at|date:"M d, Y, g:i a" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if submission.status == 'accepted' %}bg-green-100 text-green-800{% endif %}
+                                {% if submission.status == 'wrong_answer' %}bg-red-100 text-red-800{% endif %}
+                                {% if submission.status == 'pending' or submission.status == 'running' %}bg-yellow-100 text-yellow-800{% endif %}
+                                {% if submission.status == 'compilation_error' %}bg-orange-100 text-orange-800{% endif %}
+                                {% if submission.status == 'runtime_error' %}bg-red-100 text-red-800{% endif %}
+                                {% if submission.status == 'time_limit_exceeded' %}bg-purple-100 text-purple-800{% endif %}
+                                {% if submission.status == 'memory_limit_exceeded' %}bg-blue-100 text-blue-800{% endif %}
+                            ">
+                                {{ submission.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ submission.score|floatformat:1 }} / {{ assignment.max_score }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{% url 'assignments:submission_detail' submission.id %}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+        <div class="flex items-center">
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-lg font-medium">Grading your submission...</span>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">This may take a few moments. Please don't close this page.</p>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div id="result-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full">
+        <div class="flex justify-between items-start">
+            <h3 class="text-lg font-medium" id="result-title">Submission Result</h3>
+            <button type="button" id="close-modal" class="text-gray-400 hover:text-gray-500">
+                <span class="sr-only">Close</span>
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="mt-4" id="result-content">
+            <!-- Result content will be inserted here -->
+        </div>
+        <div class="mt-6 flex justify-end">
+            <a id="view-details-link" href="#" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                View Full Details
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const codeTextarea = document.getElementById('code');
+        const codeSizeIndicator = document.getElementById('code-size-indicator');
+        const resetCodeButton = document.getElementById('reset-code');
+        const submitCodeButton = document.getElementById('submit-code');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const resultModal = document.getElementById('result-modal');
+        const closeModalButton = document.getElementById('close-modal');
+        const resultTitle = document.getElementById('result-title');
+        const resultContent = document.getElementById('result-content');
+        const viewDetailsLink = document.getElementById('view-details-link');
+        
+        const starterCode = `{{ starter_code|escapejs }}`;
+        const maxCodeSize = 65536;
+        
+        // Update code size indicator
+        function updateSizeIndicator() {
+            const currentSize = codeTextarea.value.length;
+            codeSizeIndicator.textContent = `${currentSize}/${maxCodeSize}`;
+            
+            if (currentSize > maxCodeSize) {
+                codeSizeIndicator.classList.add('text-red-500');
+            } else {
+                codeSizeIndicator.classList.remove('text-red-500');
+            }
+        }
+        
+        // Reset code to starter code
+        resetCodeButton.addEventListener('click', function() {
+            codeTextarea.value = starterCode;
+            updateSizeIndicator();
+        });
+        
+        // Submit code
+        submitCodeButton.addEventListener('click', function() {
+            const code = codeTextarea.value.trim();
+            
+            if (!code) {
+                alert('Please enter your code before submitting.');
+                return;
+            }
+            
+            if (code.length > maxCodeSize) {
+                alert(`Code exceeds maximum size limit of ${maxCodeSize} characters.`);
+                return;
+            }
+            
+            // Show loading overlay
+            loadingOverlay.classList.remove('hidden');
+            
+            // Submit code via AJAX
+            fetch('{% url "assignments:submit_assignment" assignment.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    code: code
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Poll for submission status
+                    pollSubmissionStatus(data.submission_id);
+                } else {
+                    // Hide loading overlay
+                    loadingOverlay.classList.add('hidden');
+                    
+                    // Show error
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                // Hide loading overlay
+                loadingOverlay.classList.add('hidden');
+                
+                // Show error
+                alert(`Error: ${error.message}`);
+            });
+        });
+        
+        // Poll submission status
+        function pollSubmissionStatus(submissionId) {
+            const statusUrl = `/assignments/submission/${submissionId}/status/`;
+            
+            const checkStatus = () => {
+                fetch(statusUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.status === 'pending' || data.status === 'running') {
+                            // Continue polling
+                            setTimeout(checkStatus, 1000);
+                        } else {
+                            // Hide loading overlay
+                            loadingOverlay.classList.add('hidden');
+                            
+                            // Show result modal
+                            showResultModal(submissionId, data.status, data.score);
+                        }
+                    } else {
+                        // Hide loading overlay
+                        loadingOverlay.classList.add('hidden');
+                        
+                        // Show error
+                        alert(`Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    // Hide loading overlay
+                    loadingOverlay.classList.add('hidden');
+                    
+                    // Show error
+                    alert(`Error: ${error.message}`);
+                });
+            };
+            
+            // Start polling
+            setTimeout(checkStatus, 1000);
+        }
+        
+        // Show result modal
+        function showResultModal(submissionId, status, score) {
+            // Set result title
+            let statusText = '';
+            let statusClass = '';
+            
+            switch (status) {
+                case 'accepted':
+                    statusText = 'Accepted';
+                    statusClass = 'text-green-600';
+                    break;
+                case 'wrong_answer':
+                    statusText = 'Wrong Answer';
+                    statusClass = 'text-red-600';
+                    break;
+                case 'compilation_error':
+                    statusText = 'Compilation Error';
+                    statusClass = 'text-orange-600';
+                    break;
+                case 'runtime_error':
+                    statusText = 'Runtime Error';
+                    statusClass = 'text-red-600';
+                    break;
+                case 'time_limit_exceeded':
+                    statusText = 'Time Limit Exceeded';
+                    statusClass = 'text-purple-600';
+                    break;
+                case 'memory_limit_exceeded':
+                    statusText = 'Memory Limit Exceeded';
+                    statusClass = 'text-blue-600';
+                    break;
+                default:
+                    statusText = status.replace('_', ' ');
+                    statusClass = 'text-gray-600';
+            }
+            
+            resultTitle.innerHTML = `Submission Result: <span class="${statusClass}">${statusText}</span>`;
+            
+            // Set result content
+            resultContent.innerHTML = `
+                <div class="bg-gray-50 p-4 rounded-md">
+                    <p class="text-lg font-medium">Score: ${score.toFixed(1)} / {{ assignment.max_score }}</p>
+                    <p class="mt-2 text-sm text-gray-600">Click "View Full Details" to see test case results.</p>
+                </div>
+            `;
+            
+            // Set view details link
+            viewDetailsLink.href = `/assignments/submission/${submissionId}/`;
+            
+            // Show modal
+            resultModal.classList.remove('hidden');
+        }
+        
+        // Close modal
+        closeModalButton.addEventListener('click', function() {
+            resultModal.classList.add('hidden');
+        });
+        
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Initialize
+        updateSizeIndicator();
+        codeTextarea.addEventListener('input', updateSizeIndicator);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Certificate{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Certificate Verification</h1>
+    
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="p-8">
+            {% if is_valid %}
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 bg-green-100 rounded-full mb-4">
+                    <i class="fas fa-check-circle text-4xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Valid Certificate</h2>
+                <p class="text-gray-600">This certificate has been verified as authentic.</p>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-6 mt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Certificate Details</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Certificate ID</p>
+                        <p class="text-gray-800">{{ certificate.id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Issue Date</p>
+                        <p class="text-gray-800">{{ certificate.formatted_issue_date }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Student</p>
+                        <p class="text-gray-800">{{ certificate.user.get_full_name|default:certificate.user.username }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Course</p>
+                        <p class="text-gray-800">{{ certificate.course.title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Instructor</p>
+                        <p class="text-gray-800">{{ certificate.course.instructor.get_full_name|default:certificate.course.instructor.username }}</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="text-center mb-8">
+                <div class="inline-block p-4 bg-red-100 rounded-full mb-4">
+                    <i class="fas fa-times-circle text-4xl text-red-600"></i>
+                </div>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-2">Invalid Certificate</h2>
+                <p class="text-gray-600">This certificate could not be verified. It may be invalid or does not exist in our records.</p>
+            </div>
+            {% endif %}
+            
+            <div class="mt-8 text-center">
+                <a href="{% url 'home' %}" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150">
+                    Return to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-8 max-w-2xl mx-auto">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Verify Another Certificate</h3>
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+            <div class="p-6">
+                <form method="get" action="" class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="flex-grow">
+                        <label for="certificate_id" class="block text-sm font-medium text-gray-700 mb-1">Certificate ID</label>
+                        <input type="text" id="certificate_id" name="certificate_id" placeholder="Enter certificate ID" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="submit" class="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150">
+                            Verify
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -49,3 +49,43 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+class AdminNotification(models.Model):
+    """
+    Notifications for admin users
+    """
+    NOTIFICATION_TYPES = [
+        ('course_completion', 'Course Completion'),
+        ('certificate_request', 'Certificate Request'),
+        ('new_enrollment', 'New Enrollment'),
+        ('system', 'System Notification'),
+    ]
+    
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    related_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    related_course = models.ForeignKey('courses.Course', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    related_enrollment = models.ForeignKey('courses.Enrollment', on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.notification_type}: {self.title}"
+    
+    @classmethod
+    def create_course_completion_notification(cls, enrollment):
+        """Create notification when student completes a course"""
+        notification = cls(
+            title=f"Course Completion: {enrollment.course.title}",
+            message=f"Student {enrollment.student.username} has completed the course '{enrollment.course.title}'. Certificate needs to be issued.",
+            notification_type='course_completion',
+            related_user=enrollment.student,
+            related_course=enrollment.course,
+            related_enrollment=enrollment
+        )
+        notification.save()
+        return notification

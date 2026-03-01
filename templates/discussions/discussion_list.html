@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Discussions - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ course.title }} - Discussions</h1>
+        <a href="{% url 'discussions:create' course.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+            <i class="fas fa-plus mr-2"></i>New Discussion
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %} rounded-lg">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if discussions %}
+            <ul class="divide-y divide-gray-200">
+                {% for discussion in discussions %}
+                <li class="{% if discussion.is_pinned %}bg-blue-50{% endif %}">
+                    <a href="{% url 'discussions:detail' discussion.id %}" class="block hover:bg-gray-50 transition duration-150">
+                        <div class="px-6 py-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                        {% if discussion.is_pinned %}
+                                        <span class="mr-2 text-blue-600"><i class="fas fa-thumbtack"></i></span>
+                                        {% endif %}
+                                        {{ discussion.title }}
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-600 line-clamp-2">{{ discussion.content|truncatechars:150 }}</p>
+                                </div>
+                                <div class="text-sm text-gray-500 flex flex-col items-end">
+                                    <span>{{ discussion.comment_count }} {% if discussion.comment_count == 1 %}comment{% else %}comments{% endif %}</span>
+                                    <span class="mt-1">{{ discussion.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-2 flex items-center text-sm text-gray-500">
+                                <span>Started by {{ discussion.created_by.username }}</span>
+                                {% if discussion.is_closed %}
+                                <span class="ml-4 px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs">Closed</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="p-6 text-center">
+                <p class="text-gray-600">No discussions yet. Be the first to start a discussion!</p>
+                <a href="{% url 'discussions:create' course.id %}" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
+                    Start a Discussion
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="mt-6">
+        <a href="{% url 'courses:detail' course.id %}" class="text-blue-600 hover:text-blue-800 transition duration-150">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Course
+        </a>
+    </div>
+</div>
+{% endblock %}

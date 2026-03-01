@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lecture.title }} - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+    <!-- Lecture Navigation -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <div>
+            <a href="{% url 'courses:course_detail' course_id=course.id %}" class="text-blue-600 hover:text-blue-800 font-medium flex items-center group transition-all duration-300 transform hover:translate-x-[-4px]">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Course
+            </a>
+        </div>
+        
+        <div class="flex space-x-4">
+            {% if prev_lecture %}
+            <a href="{% url 'courses:view_lecture' lecture_id=prev_lecture.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md">
+                <i class="fas fa-chevron-left mr-2"></i> Previous
+            </a>
+            {% endif %}
+            
+            {% if next_lecture %}
+            <a href="{% url 'courses:view_lecture' lecture_id=next_lecture.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md">
+                Next <i class="fas fa-chevron-right ml-2"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Lecture Content -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8 border border-gray-100 transition-all duration-300 hover:shadow-xl">
+        <div class="border-b border-gray-200 px-6 py-4 flex flex-wrap justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div>
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ lecture.title }}</h1>
+                <p class="text-gray-600">{{ course.title }} • Lecture {{ lecture.order }}</p>
+            </div>
+            
+            {% if is_instructor %}
+            <div class="flex space-x-2">
+                <a href="{% url 'courses:edit_lecture' lecture_id=lecture.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded-md transition duration-300 ease-in-out text-sm transform hover:scale-105">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </a>
+                <a href="{% url 'courses:delete_lecture' lecture_id=lecture.id %}" class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded-md transition duration-300 ease-in-out text-sm transform hover:scale-105">
+                    <i class="fas fa-trash-alt mr-1"></i> Delete
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="p-6">
+            {% if lecture.description %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Description</h3>
+                <p class="text-gray-700">{{ lecture.description }}</p>
+            </div>
+            {% endif %}
+            
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Lecture Content</h3>
+                
+                {% if lecture.content_type == 'video' %}
+                <div class="aspect-w-16 aspect-h-9 mb-4 rounded-lg overflow-hidden shadow-lg">
+                    <iframe src="{{ lecture.content_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="rounded-lg shadow-md"></iframe>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <i class="far fa-clock mr-1"></i> Duration: {{ lecture.duration_minutes }} minutes
+                </div>
+                
+                {% elif lecture.content_type == 'pdf' %}
+                <div class="mb-4">
+                    <div class="bg-gray-100 rounded-lg p-8 text-center">
+                        <i class="fas fa-file-pdf text-5xl text-red-500 mb-4"></i>
+                        <h4 class="text-lg font-medium text-gray-800 mb-2">PDF Document</h4>
+                        <p class="text-gray-600 mb-4">View or download the PDF document</p>
+                        
+                        <div class="flex justify-center space-x-4">
+                            {% if lecture.content_file %}
+                            <a href="{{ lecture.content_file.url }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                                <i class="fas fa-eye mr-2"></i> View PDF
+                            </a>
+                            <a href="{{ lecture.content_file.url }}" download class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                                <i class="fas fa-download mr-2"></i> Download
+                            </a>
+                            {% elif lecture.content_url %}
+                            <a href="{{ lecture.content_url }}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                                <i class="fas fa-external-link-alt mr-2"></i> Open PDF
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% elif lecture.content_type == 'text' %}
+                <div class="prose max-w-none prose-blue prose-img:rounded-xl prose-headings:text-blue-700">
+                    {{ lecture.content_text|linebreaks }}
+                </div>
+                
+                {% elif lecture.content_type == 'interactive' %}
+                <div class="bg-gray-100 rounded-lg p-8 text-center">
+                    <i class="fas fa-laptop-code text-5xl text-purple-500 mb-4"></i>
+                    <h4 class="text-lg font-medium text-gray-800 mb-2">Interactive Content</h4>
+                    <p class="text-gray-600 mb-4">Access the interactive learning material</p>
+                    
+                    {% if lecture.content_url %}
+                    <a href="{{ lecture.content_url }}" target="_blank" class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                        <i class="fas fa-external-link-alt mr-2"></i> Launch Interactive Content
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if is_enrolled and form %}
+            <div class="border-t border-gray-200 pt-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Track Your Progress</h3>
+                
+                <form method="post" action="{% url 'courses:view_lecture' lecture_id=lecture.id %}">
+                    {% csrf_token %}
+                    <div class="flex items-center">
+                        <label class="inline-flex items-center">
+                            {{ form.is_completed }}
+                            <span class="ml-2 text-gray-700">Mark as completed</span>
+                        </label>
+                        
+                        <button type="submit" class="ml-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-1 px-3 rounded-md transition duration-300 ease-in-out text-sm transform hover:scale-105 hover:shadow-md">
+                            Save Progress
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Course Navigation -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-xl">
+        <div class="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <h2 class="text-xl font-semibold text-gray-800">Course Content</h2>
+        </div>
+        
+        <ul class="divide-y divide-gray-200 max-h-[400px] overflow-y-auto custom-scrollbar">
+            {% for lec in course.lectures.all %}
+            <li class="px-6 py-3 {% if lec.id == lecture.id %}bg-blue-50{% else %}hover:bg-blue-50{% endif %} transition duration-300 ease-in-out">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-shrink-0">
+                            {% if lec.content_type == 'video' %}
+                            <i class="fas fa-play-circle text-blue-500"></i>
+                            {% elif lec.content_type == 'pdf' %}
+                            <i class="fas fa-file-pdf text-red-500"></i>
+                            {% elif lec.content_type == 'text' %}
+                            <i class="fas fa-file-alt text-green-500"></i>
+                            {% else %}
+                            <i class="fas fa-laptop-code text-purple-500"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-sm font-medium {% if lec.id == lecture.id %}text-blue-700{% else %}text-gray-800{% endif %}">
+                                {{ lec.title }}
+                            </h3>
+                            <p class="text-xs text-gray-500">{{ lec.duration_minutes }} min</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        {% if lec.id == lecture.id %}
+                        <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            <i class="fas fa-eye mr-1"></i> Current
+                        </span>
+                        {% elif is_enrolled and lecture_progress and lecture_progress.lecture.id.is_completed %}
+                        <span class="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                            <i class="fas fa-check-circle mr-1"></i> Completed
+                        </span>
+                        {% elif is_enrolled or is_instructor or lec.is_free %}
+                        <a href="{% url 'courses:view_lecture' lecture_id=lec.id %}" class="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                            View
+                        </a>
+                        {% else %}
+                        <span class="text-xs text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

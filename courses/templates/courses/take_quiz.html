@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block extra_head %}
+<script>
+    // Timer functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const remainingSeconds = {{ remaining_seconds|default:0 }};
+        const timerDisplay = document.getElementById('timer-display');
+        const quizForm = document.getElementById('quiz-form');
+        
+        let timeLeft = remainingSeconds;
+        
+        function updateTimer() {
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert('Time is up! Your quiz will be submitted automatically.');
+                quizForm.submit();
+                return;
+            }
+            
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            timeLeft--;
+        }
+        
+        // Update timer immediately and then every second
+        updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">{{ quiz.title }}</h1>
+                <div class="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-medium">
+                    Time Remaining: <span id="timer-display">--:--</span>
+                </div>
+            </div>
+            <p class="text-gray-600 mt-2">{{ quiz.description }}</p>
+        </div>
+        
+        <form id="quiz-form" method="post" class="p-6">
+            {% csrf_token %}
+            
+            {% for quiz_question in quiz_questions %}
+                <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+                    <div class="mb-4">
+                        <h3 class="text-lg font-semibold">Question {{ forloop.counter }}: {{ quiz_question.question.question_text }}</h3>
+                        <p class="text-sm text-gray-500">Points: {{ quiz_question.question.points }}</p>
+                    </div>
+                    
+                    {% if quiz_question.question.question_type == 'multiple_choice' %}
+                        <div class="space-y-2">
+                            {% for answer in quiz_question.answers %}
+                                <div class="flex items-start">
+                                    <input type="checkbox" name="question_{{ quiz_question.question.id }}" value="{{ answer.id }}" 
+                                           id="answer_{{ answer.id }}" class="mt-1">
+                                    <label for="answer_{{ answer.id }}" class="ml-2">{{ answer.answer_text }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">Select all that apply</p>
+                        
+                    {% elif quiz_question.question.question_type == 'true_false' %}
+                        <div class="space-y-2">
+                            {% for answer in quiz_question.answers %}
+                                <div class="flex items-start">
+                                    <input type="radio" name="question_{{ quiz_question.question.id }}" value="{{ answer.id }}" 
+                                           id="answer_{{ answer.id }}" class="mt-1" required>
+                                    <label for="answer_{{ answer.id }}" class="ml-2">{{ answer.answer_text }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                    {% elif quiz_question.question.question_type == 'short_answer' %}
+                        <div>
+                            <textarea name="question_{{ quiz_question.question.id }}" rows="3" 
+                                      class="w-full p-2 border border-gray-300 rounded" 
+                                      placeholder="Your answer"></textarea>
+                        </div>
+                        
+                    {% elif quiz_question.question.question_type == 'coding' %}
+                        <div>
+                            <textarea name="question_{{ quiz_question.question.id }}" rows="8" 
+                                      class="w-full p-2 border border-gray-300 rounded font-mono" 
+                                      placeholder="Write your code here"></textarea>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="mt-6 flex justify-between">
+                <a href="{% url 'courses:quiz_list' course_id=quiz.course.id %}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                    Submit Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

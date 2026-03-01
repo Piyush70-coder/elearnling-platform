@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Assignment Uploads{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-gray-800">Teacher Uploaded Assignment Files</h1>
+            {% if course_id %}
+                <p class="text-gray-600">Viewing uploads for a specific course</p>
+            {% else %}
+                <p class="text-gray-600">Viewing uploads for all your enrolled courses</p>
+            {% endif %}
+        </div>
+
+        <div class="px-6 py-4">
+            {% if assignment_uploads %}
+                {% for item in assignment_uploads %}
+                    <div class="mb-8 border-b border-gray-200 pb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-2">{{ item.assignment.title }}</h2>
+                        <p class="text-gray-600 mb-2">Course: {{ item.assignment.course.title }}</p>
+                        <p class="text-gray-600 mb-4">Due Date: {% if item.assignment.due_date %}{{ item.assignment.due_date|date:"F j, Y, g:i a" }}{% else %}No due date{% endif %}</p>
+                        
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">Uploaded Files</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="divide-y divide-gray-200">
+                                {% for upload in item.uploads %}
+                                    <li class="py-3 flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-file-alt text-blue-500 mr-3"></i>
+                                            <div>
+                                                <p class="font-medium text-gray-800">{{ upload.title }}</p>
+                                                <p class="text-sm text-gray-500">{{ upload.description }}</p>
+                                                <p class="text-xs text-gray-400">Uploaded: {{ upload.upload_date|date:"F j, Y" }}</p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ upload.file.url }}" class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm transition duration-300" download>
+                                            <i class="fas fa-download mr-1"></i> Download
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{% url 'assignments:assignment_detail' item.assignment.id %}" class="text-blue-500 hover:text-blue-700 font-medium">
+                                <i class="fas fa-arrow-right mr-1"></i> View Assignment Details
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-file-upload text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No assignment files have been uploaded by your teachers yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

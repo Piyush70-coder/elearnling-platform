@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Quizzes for {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">Quizzes for {{ course.title }}</h1>
+        <a href="{% url 'courses:course_detail' course_id=course.id %}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
+            Back to Course
+        </a>
+    </div>
+
+    {% if quiz_data %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for item in quiz_data %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start">
+                            <h2 class="text-xl font-semibold mb-2">{{ item.quiz.title }}</h2>
+                            {% if user.role == 'teacher' or user.is_staff %}
+                                {% if item.quiz.is_active %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                {% else %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-600 mb-4">{{ item.quiz.description|truncatewords:20 }}</p>
+                        
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-500">Time Limit: {{ item.quiz.time_limit_minutes }} minutes</p>
+                            <p class="text-sm text-gray-500">Questions: {{ item.quiz.questions.count }}</p>
+                            <p class="text-sm text-gray-500">Passing Score: {{ item.quiz.passing_score }}%</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-sm font-medium">Attempts: {{ item.attempts.count }} / {{ item.quiz.attempts_allowed }}</p>
+                            {% if item.best_score is not None %}
+                                <p class="text-sm font-medium">Best Score: {{ item.best_score }}%</p>
+                                {% if item.passed %}
+                                    <p class="text-sm font-medium text-green-600">Status: Passed</p>
+                                {% else %}
+                                    <p class="text-sm font-medium text-red-600">Status: Failed</p>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-sm font-medium">Status: Not Attempted</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-4">
+                            {% if item.attempts.count < item.quiz.attempts_allowed %}
+                                <a href="{% url 'courses:start_quiz' quiz_id=item.quiz.id %}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded inline-block">
+                                    {% if item.attempts.count == 0 %}Start Quiz{% else %}Attempt Again{% endif %}
+                                </a>
+                            {% else %}
+                                <button disabled class="bg-gray-400 text-white py-2 px-4 rounded inline-block cursor-not-allowed">
+                                    No Attempts Left
+                                </button>
+                            {% endif %}
+                            
+                            {% if item.attempts.count > 0 %}
+                                <a href="#" class="text-blue-600 hover:text-blue-800 ml-4">View Past Attempts</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <p class="text-gray-600">No quizzes available for this course yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

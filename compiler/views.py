@@ -5,11 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.conf import settings as django_settings
 import json
 from datetime import datetime
 
 from .models import CodeExecution, CodeTemplate
 from .services import Judge0Service
+from . import settings as compiler_settings
 
 @login_required
 def compiler_view(request):
@@ -45,11 +47,24 @@ def execute_code(request):
             })
         
         # Validate language
-        valid_languages = [choice[0] for choice in CodeExecution.LANGUAGE_CHOICES]
-        if language not in valid_languages:
+        if language not in compiler_settings.JUDGE0_LANGUAGE_MAP:
             return JsonResponse({
                 'success': False,
                 'error': f'Unsupported language: {language}'
+            })
+            
+        # Validate code size
+        if len(source_code) > compiler_settings.MAX_CODE_SIZE:
+            return JsonResponse({
+                'success': False,
+                'error': f'Code exceeds maximum size limit of {compiler_settings.MAX_CODE_SIZE} characters'
+            })
+            
+        # Validate stdin size
+        if len(stdin_data) > compiler_settings.MAX_STDIN_SIZE:
+            return JsonResponse({
+                'success': False,
+                'error': f'Input exceeds maximum size limit of {compiler_settings.MAX_STDIN_SIZE} characters'
             })
         
         # Create execution record
@@ -113,18 +128,38 @@ def get_execution_result(request, execution_id):
     """
     execution = get_object_or_404(CodeExecution, id=execution_id, user=request.user)
     
-    return JsonResponse({
+    # If still processing, check for updates
+    if execution.status == 'processing' and execution.judge0_token:
+        judge0_service = Judge0Service()
+        judge0_service.get_result(execution)
+        execution.refresh_from_db()
+    
+    # Format the response
+    response_data = {
         'success': True,
         'execution_id': execution.id,
         'status': execution.status,
-        'stdout': execution.stdout,
-        'stderr': execution.stderr,
-        'compile_output': execution.compile_output,
+        'stdout': execution.stdout or '',
+        'stderr': execution.stderr or '',
+        'compile_output': execution.compile_output or '',
         'execution_time': execution.execution_time,
         'memory_used': execution.memory_used,
         'created_at': execution.created_at.isoformat(),
         'completed_at': execution.completed_at.isoformat() if execution.completed_at else None,
-    })
+        'language': execution.language
+    }
+    
+    # Add human-readable status message
+    status_messages = {
+        'completed': 'Execution completed successfully',
+        'processing': 'Code is still being processed',
+        'error': 'Execution failed with errors',
+        'timeout': 'Execution timed out',
+        'pending': 'Execution is pending'
+    }
+    response_data['status_message'] = status_messages.get(execution.status, execution.status)
+    
+    return JsonResponse(response_data)
 
 @login_required
 def execution_history(request):
@@ -135,10 +170,21 @@ def execution_history(request):
     
     history_data = []
     for execution in executions:
+        # Get status icon based on execution status
+        status_icons = {
+            'completed': '✅',
+            'error': '❌',
+            'timeout': '⏱️',
+            'processing': '⏳',
+            'pending': '🔄'
+        }
+        status_icon = status_icons.get(execution.status, '❓')
+        
         history_data.append({
             'id': execution.id,
             'language': execution.get_language_display(),
             'status': execution.get_status_display(),
+            'status_icon': status_icon,
             'created_at': execution.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'source_code_preview': execution.source_code[:100] + '...' if len(execution.source_code) > 100 else execution.source_code,
         })
@@ -153,6 +199,13 @@ def get_code_template(request, language):
     """
     Get code template for a specific language
     """
+    # Validate language
+    if language not in compiler_settings.JUDGE0_LANGUAGE_MAP:
+        return JsonResponse({
+            'success': False,
+            'error': f'Unsupported language: {language}'
+        }, status=400)
+        
     try:
         template = CodeTemplate.objects.get(language=language)
         return JsonResponse({

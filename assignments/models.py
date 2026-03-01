@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from courses.models import Course
 
 class Assignment(models.Model):
@@ -36,6 +37,7 @@ class Assignment(models.Model):
     memory_limit_mb = models.IntegerField(default=128)
     starter_code = models.TextField(blank=True, help_text="Initial code template for students")
     solution_code = models.TextField(help_text="Teacher's solution (hidden from students)")
+    assignment_file = models.FileField(upload_to='assignments/', blank=True, null=True, help_text="Upload assignment document or additional resources")
     due_date = models.DateTimeField()
     is_active = models.BooleanField(default=True)
     allow_multiple_submissions = models.BooleanField(default=True)
@@ -110,3 +112,17 @@ class SubmissionResult(models.Model):
     
     def __str__(self):
         return f"{self.submission.student.username} - Test Case {self.test_case.id} ({self.status})"
+
+class AssignmentUpload(models.Model):
+    """
+    Tracks uploaded assignment files by teachers
+    """
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='uploads')
+    file = models.FileField(upload_to='assignment_uploads/')
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_uploads')
+    upload_date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.title} - {self.assignment.title}"

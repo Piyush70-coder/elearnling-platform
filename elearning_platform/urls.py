@@ -29,6 +29,10 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('accounts/', include('accounts.urls')),
     path('compiler/', include('compiler.urls')),
+    path('assignments/', include('assignments.urls')),
+    path('courses/', include('courses.urls')),
+    path('certificates/', include('certificates.urls')),
+    path('discussions/', include('discussions.urls')),
 ]
 
 # Serve media files during development

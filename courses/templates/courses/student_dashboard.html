@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-8">Student Dashboard</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Stats Card: Enrolled Courses -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Enrolled Courses</p>
+                    <p class="text-2xl font-bold">{{ enrollments|length }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Card: Completed Courses -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Completed Courses</p>
+                    <p class="text-2xl font-bold">{{ completed_courses }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Card: Quizzes Taken -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Quizzes Taken</p>
+                    <p class="text-2xl font-bold">{{ quiz_attempts }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Enrolled Courses -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold">My Courses</h2>
+        </div>
+        
+        {% if enrollments %}
+            <div class="divide-y divide-gray-200">
+                {% for enrollment in enrollments %}
+                    <div class="p-6 hover:bg-gray-50">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                            <div class="flex items-center mb-4 md:mb-0">
+                                {% if enrollment.course.thumbnail %}
+                                    <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" class="w-16 h-16 object-cover rounded mr-4">
+                                {% else %}
+                                    <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center mr-4">
+                                        <span class="text-gray-500 text-xs">No image</span>
+                                    </div>
+                                {% endif %}
+                                
+                                <div>
+                                    <h3 class="font-medium text-lg">{{ enrollment.course.title }}</h3>
+                                    <div class="flex items-center text-sm text-gray-500">
+                                        <span class="mr-2">{{ enrollment.course.get_category_display }}</span>
+                                        <span class="mr-2">•</span>
+                                        <span>{{ enrollment.course.get_difficulty_level_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col items-end">
+                                <div class="flex items-center mb-2">
+                                    <div class="text-sm font-medium text-gray-700 mr-2">{{ enrollment.completion_percentage }}% complete</div>
+                                    <div class="w-32 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ enrollment.completion_percentage }}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <a href="{% if enrollment.last_lecture %}{% url 'courses:view_lecture' lecture_id=enrollment.last_lecture.id %}{% else %}{% url 'courses:course_detail' course_id=enrollment.course.id %}{% endif %}" 
+                                       class="bg-blue-600 hover:bg-blue-700 text-white text-sm py-1 px-3 rounded"> 
+                                        {% if enrollment.completion_percentage == 0 %}Start Course{% else %}Continue{% endif %} 
+                                    </a>
+                                    
+                                    <a href="{% url 'courses:quiz_list' course_id=enrollment.course.id %}" 
+                                       class="bg-purple-600 hover:bg-purple-700 text-white text-sm py-1 px-3 rounded">
+                                        Quizzes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="p-6 text-center text-gray-500">
+                <p>You are not enrolled in any courses yet.</p>
+                <a href="{% url 'courses:course_list' %}" class="text-blue-600 hover:text-blue-800 mt-2 inline-block">Browse Courses</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recent Quiz Attempts -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold">Recent Quiz Attempts</h2>
+        </div>
+        
+        {% if recent_quiz_attempts %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quiz</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for attempt in recent_quiz_attempts %}
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ attempt.quiz.title }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">{{ attempt.quiz.course.title }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-500">{{ attempt.completed_at|date:"M d, Y" }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ attempt.score }}%</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if attempt.passed %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Passed</span>
+                                    {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <a href="{% url 'courses:quiz_results' quiz_id=attempt.quiz.id attempt_id=attempt.id %}" class="text-blue-600 hover:text-blue-900">View Results</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-6 text-center text-gray-500">
+                <p>You haven't taken any quizzes yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

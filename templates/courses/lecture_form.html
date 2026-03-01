@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">{{ title }}</h1>
+            
+            <a href="{% url 'courses:course_lectures' course.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Lectures
+            </a>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <form method="post" enctype="multipart/form-data" class="p-6">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-500"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Please correct the errors below:</h3>
+                            <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="space-y-6">
+                    <!-- Lecture Title -->
+                    <div>
+                        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Lecture Title</label>
+                        {{ form.title }}
+                        {% if form.title.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.title.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                        <p class="mt-1 text-sm text-gray-500">{{ form.description.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Order -->
+                    <div>
+                        <label for="{{ form.order.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                        {{ form.order }}
+                        <p class="mt-1 text-sm text-gray-500">Position of this lecture in the course (1 for first lecture, etc.)</p>
+                    </div>
+                    
+                    <!-- Is Free -->
+                    <div>
+                        <div class="flex items-center">
+                            {{ form.is_free }}
+                            <label for="{{ form.is_free.id_for_label }}" class="ml-2 block text-sm text-gray-700">Free Preview (available without enrollment)</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Type -->
+                    <div>
+                        <label for="{{ form.content_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Content Type</label>
+                        {{ form.content_type }}
+                        <p class="mt-1 text-sm text-gray-500">Select the type of content for this lecture</p>
+                    </div>
+                    
+                    <!-- Content URL (for video, external) -->
+                    <div id="content-url-field" class="{% if form.instance.content_type != 'video' and form.instance.content_type != 'external' %}hidden{% endif %}">
+                        <label for="{{ form.content_url.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Content URL</label>
+                        {{ form.content_url }}
+                        <p class="mt-1 text-sm text-gray-500">Enter YouTube URL for video or external resource URL</p>
+                    </div>
+                    
+                    <!-- Content File (for pdf, document) -->
+                    <div id="content-file-field" class="{% if form.instance.content_type != 'pdf' and form.instance.content_type != 'document' %}hidden{% endif %}">
+                        <label for="{{ form.content_file.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Content File</label>
+                        {% if form.instance.content_file %}
+                        <div class="mb-2">
+                            <p class="text-sm text-gray-600">Current file: {{ form.instance.content_file.name }}</p>
+                            <p class="mt-1 text-sm text-gray-500">Upload a new file to replace it.</p>
+                        </div>
+                        {% endif %}
+                        {{ form.content_file }}
+                        <p class="mt-1 text-sm text-gray-500">Upload PDF or document file</p>
+                    </div>
+                    
+                    <!-- Text Content (for text) -->
+                    <div id="text-content-field" class="{% if form.instance.content_type != 'text' %}hidden{% endif %}">
+                        <label for="{{ form.text_content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Text Content</label>
+                        {{ form.text_content }}
+                        <p class="mt-1 text-sm text-gray-500">Enter the text content for this lecture. Markdown formatting is supported.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-3">
+                    <a href="{% url 'courses:course_lectures' course.id %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                        Cancel
+                    </a>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                        {% if lecture %}Update Lecture{% else %}Create Lecture{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contentTypeSelect = document.getElementById('{{ form.content_type.id_for_label }}');
+        const contentUrlField = document.getElementById('content-url-field');
+        const contentFileField = document.getElementById('content-file-field');
+        const textContentField = document.getElementById('text-content-field');
+        
+        function updateContentFields() {
+            const contentType = contentTypeSelect.value;
+            
+            // Hide all content fields first
+            contentUrlField.classList.add('hidden');
+            contentFileField.classList.add('hidden');
+            textContentField.classList.add('hidden');
+            
+            // Show the appropriate field based on content type
+            if (contentType === 'video' || contentType === 'external') {
+                contentUrlField.classList.remove('hidden');
+            } else if (contentType === 'pdf' || contentType === 'document') {
+                contentFileField.classList.remove('hidden');
+            } else if (contentType === 'text') {
+                textContentField.classList.remove('hidden');
+            }
+        }
+        
+        // Initial update
+        updateContentFields();
+        
+        // Update on change
+        contentTypeSelect.addEventListener('change', updateContentFields);
+    });
+</script>
+{% endblock %}
+{% endblock %}

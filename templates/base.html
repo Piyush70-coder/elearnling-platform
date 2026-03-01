@@ -6,62 +6,184 @@
     <title>{% block title %}E-Learning Platform{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1e40af',
-                        secondary: '#64748b',
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#1e40af',
+                            secondary: '#64748b',
+                            accent: '#8b5cf6',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            danger: '#ef4444',
+                            info: '#3b82f6'
+                        },
+                        animation: {
+                            'fade-in': 'fadeIn 0.5s ease-in-out',
+                            'slide-in': 'slideIn 0.5s ease-in-out',
+                            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                        },
+                        keyframes: {
+                            fadeIn: {
+                                '0%': { opacity: '0' },
+                                '100%': { opacity: '1' }
+                            },
+                            slideIn: {
+                                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                                '100%': { transform: 'translateY(0)', opacity: '1' }
+                            }
+                        },
+                        boxShadow: {
+                            'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                            'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)'
+                        }
                     }
                 }
             }
         }
     </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        @keyframes slideIn {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.03);
+        }
+    </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-sm border-b">
+    <nav class="bg-white shadow-md border-b sticky top-0 z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="{% url 'home' %}" class="flex items-center space-x-2">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-2 hover-scale">
                         <i class="fas fa-graduation-cap text-2xl text-primary"></i>
                         <span class="text-xl font-bold text-gray-900">EduCode University</span>
                     </a>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-6">
                     {% if user.is_authenticated %}
-                        <a href="{% url 'compiler:compiler' %}" class="text-gray-700 hover:text-primary flex items-center space-x-1">
-                            <i class="fas fa-code"></i>
-                            <span>Compiler</span>
+                        <a href="{% url 'courses:course_list' %}" class="text-gray-700 hover:text-primary flex items-center space-x-1 transition duration-300 ease-in-out hover:scale-105">
+                            <i class="fas fa-book"></i>
+                            <span>Courses</span>
                         </a>
+                        {% if user.role == 'student' %}
+                            <a href="{% url 'courses:student_dashboard' %}" class="text-gray-700 hover:text-primary flex items-center space-x-1 transition duration-300 ease-in-out hover:scale-105">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        {% elif user.role == 'instructor' %}
+                            <a href="{% url 'courses:instructor_dashboard' %}" class="text-gray-700 hover:text-primary flex items-center space-x-1 transition duration-300 ease-in-out hover:scale-105">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                                <span>Instructor</span>
+                            </a>
+                        {% endif %}
                         <div class="flex items-center space-x-4">
-                            <span class="text-gray-700">Welcome, {{ user.username }}</span>
+                            <span class="text-gray-700 hidden lg:inline">Welcome, {{ user.username }}</span>
                             <div class="relative">
-                                <button type="button" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary" id="user-menu-button">
+                                <button type="button" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-300 ease-in-out hover:scale-105" id="user-menu-button">
                                     <i class="fas fa-user-circle text-2xl text-gray-600"></i>
                                 </button>
-                                <div class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5" id="user-menu">
-                                    <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                                    {% if user.is_student %}
-                                        <a href="{% url 'accounts:student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                                    {% elif user.is_teacher %}
-                                        <a href="{% url 'accounts:teacher_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                                    {% elif user.is_admin %}
-                                        <a href="{% url 'accounts:admin_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Admin Dashboard</a>
+                                <div class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 animate-fade-in" id="user-menu">
+                                    <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                        <i class="fas fa-user mr-2"></i> Profile
+                                    </a>
+                                    {% if user.role == 'student' %}
+                                        <a href="{% url 'courses:student_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                        </a>
+                                        <a href="{% url 'courses:course_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-book mr-2"></i> Browse Courses
+                                        </a>
+                                    {% elif user.role == 'instructor' %}
+                                        <a href="{% url 'courses:instructor_dashboard' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                        </a>
+                                        <a href="{% url 'courses:create_course' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-plus-circle mr-2"></i> Create Course
+                                        </a>
+                                    {% elif user.is_staff %}
+                                        <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-cog mr-2"></i> Admin Dashboard
+                                        </a>
                                     {% endif %}
                                     <form method="post" action="{% url 'accounts:logout' %}" class="inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</button>
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-200">
+                                            <i class="fas fa-sign-out-alt mr-2"></i> Sign out
+                                        </button>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     {% else %}
-                        <a href="{% url 'accounts:login' %}" class="text-gray-700 hover:text-primary">Login</a>
-                        <a href="{% url 'accounts:register' %}" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">Register</a>
+                        <a href="{% url 'accounts:login' %}" class="text-gray-700 hover:text-primary transition duration-300 ease-in-out hover:scale-105">Login</a>
+                        <a href="{% url 'accounts:register' %}" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-md">Register</a>
+                    {% endif %}
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button type="button" class="text-gray-700 hover:text-primary focus:outline-none" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile menu -->
+            <div class="hidden md:hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 animate-slide-in">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'courses:course_list' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                            <i class="fas fa-book mr-2"></i> Courses
+                        </a>
+                        {% if user.role == 'student' %}
+                            <a href="{% url 'courses:student_dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                            </a>
+                        {% elif user.role == 'instructor' %}
+                            <a href="{% url 'courses:instructor_dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                                <i class="fas fa-chalkboard-teacher mr-2"></i> Instructor
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'accounts:profile' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                            <i class="fas fa-user mr-2"></i> Profile
+                        </a>
+                        <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Sign out
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </a>
+                        <a href="{% url 'accounts:register' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">
+                            <i class="fas fa-user-plus mr-2"></i> Register
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -72,15 +194,27 @@
     {% if messages %}
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
             {% for message in messages %}
-                <div class="p-4 mb-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                    {{ message }}
+                <div class="p-4 mb-4 rounded-md shadow-md animate-fade-in flex items-center {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    <div class="mr-3">
+                        {% if message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle text-xl text-red-500"></i>
+                        {% elif message.tags == 'success' %}
+                            <i class="fas fa-check-circle text-xl text-green-500"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle text-xl text-blue-500"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-1">{{ message }}</div>
+                    <button type="button" class="text-gray-500 hover:text-gray-700 focus:outline-none message-close">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
     <!-- Main Content -->
-    <main>
+    <main class="animate-fade-in">
         {% block content %}
         {% endblock %}
     </main>
@@ -88,26 +222,119 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-white mt-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">EduCode University</h3>
+                    <p class="text-gray-400 mb-4">Empowering students through coding education and practical learning experiences.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white transition-colors duration-300">Home</a></li>
+                        <li><a href="{% url 'courses:course_list' %}" class="text-gray-400 hover:text-white transition-colors duration-300">Courses</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white transition-colors duration-300">Profile</a></li>
+                        {% else %}
+                            <li><a href="{% url 'accounts:login' %}" class="text-gray-400 hover:text-white transition-colors duration-300">Login</a></li>
+                            <li><a href="{% url 'accounts:register' %}" class="text-gray-400 hover:text-white transition-colors duration-300">Register</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">Contact Us</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3"></i>
+                            <span>123 Education Street, Learning City, 10001</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-3"></i>
+                            <span>contact@educode.university</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-3"></i>
+                            <span>+1 (555) 123-4567</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center">
                 <p>&copy; 2024 EduCode University. All rights reserved.</p>
-                <p class="text-gray-400 text-sm mt-2">Empowering students through coding education</p>
             </div>
         </div>
     </footer>
 
     <script>
         // Toggle user menu
-        document.getElementById('user-menu-button')?.addEventListener('click', function() {
+        document.getElementById('user-menu-button')?.addEventListener('click', function(event) {
+            event.stopPropagation();
             const menu = document.getElementById('user-menu');
             menu.classList.toggle('hidden');
         });
 
-        // Close menu when clicking outside
+        // Toggle mobile menu
+        document.getElementById('mobile-menu-button')?.addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Close menus when clicking outside
         document.addEventListener('click', function(event) {
-            const menu = document.getElementById('user-menu');
-            const button = document.getElementById('user-menu-button');
-            if (!button?.contains(event.target) && !menu?.contains(event.target)) {
-                menu?.classList.add('hidden');
+            const userMenu = document.getElementById('user-menu');
+            const userMenuButton = document.getElementById('user-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            if (userMenu && userMenuButton && !userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+            
+            if (mobileMenu && mobileMenuButton && !mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+        
+        // Close message alerts
+        document.querySelectorAll('.message-close').forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('div.rounded-md');
+                alert.classList.add('opacity-0');
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Auto-hide messages after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.message-close').forEach(button => {
+                button.click();
+            });
+        }, 5000);
+        
+        // Scroll effect for navbar
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 10) {
+                nav.classList.add('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
+                nav.classList.remove('bg-white');
+            } else {
+                nav.classList.remove('shadow-md', 'bg-white/95', 'backdrop-blur-sm');
+                nav.classList.add('bg-white');
             }
         });
     </script>

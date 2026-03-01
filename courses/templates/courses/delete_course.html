@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Course{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Delete Course</h1>
+        
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        Are you sure you want to delete the course "<strong>{{ course.title }}</strong>"? This action cannot be undone.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 border border-gray-200 mb-6">
+            <h2 class="text-lg font-medium text-gray-800">{{ course.title }}</h2>
+            <p class="text-gray-600 mt-1">{{ course.description|truncatechars:100 }}</p>
+            <div class="mt-2 text-sm text-gray-500">
+                <p>Category: {{ course.category }}</p>
+                <p>Level: {{ course.level }}</p>
+                <p>Students enrolled: {{ course.enrolled_students.count }}</p>
+            </div>
+        </div>
+        
+        <form method="post" class="flex items-center justify-between">
+            {% csrf_token %}
+            <a href="{% url 'courses:course_detail' course.id %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Cancel
+            </a>
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Delete Course
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

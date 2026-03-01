@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Quiz{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Create Quiz for {{ course.title }}</h1>
+        
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Quiz Title -->
+                <div>
+                    <label for="{{ form.title.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Quiz Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.title.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.description.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Time Limit -->
+                <div>
+                    <label for="{{ form.time_limit_minutes.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Time Limit (minutes)</label>
+                    {{ form.time_limit_minutes }}
+                    {% if form.time_limit_minutes.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.time_limit_minutes.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Passing Score -->
+                <div>
+                    <label for="{{ form.passing_score.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Passing Score (%)</label>
+                    {{ form.passing_score }}
+                    {% if form.passing_score.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.passing_score.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Attempts Allowed -->
+                <div>
+                    <label for="{{ form.attempts_allowed.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Attempts Allowed</label>
+                    {{ form.attempts_allowed }}
+                    {% if form.attempts_allowed.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.attempts_allowed.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Is Active -->
+                <div class="flex items-center">
+                    {{ form.is_active }}
+                    <label for="{{ form.is_active.id_for_label }}" class="ml-2 block text-gray-700 text-sm font-bold">Active</label>
+                    {% if form.is_active.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.is_active.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Questions Formset -->
+            <div class="mt-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">Questions</h2>
+                {{ question_formset.management_form }}
+                
+                <div id="questions-container">
+                    {% for question_form in question_formset %}
+                    <div class="question-form border border-gray-300 p-4 rounded-lg mb-4">
+                        <h3 class="text-lg font-semibold mb-2">Question {{ forloop.counter }}</h3>
+                        
+                        {{ question_form.id }}
+                        
+                        <div class="mb-4">
+                            <label for="{{ question_form.question_text.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Question Text</label>
+                            {{ question_form.question_text }}
+                            {% if question_form.question_text.errors %}
+                            <p class="text-red-500 text-xs italic mt-1">{{ question_form.question_text.errors }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ question_form.question_type.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Question Type</label>
+                            {{ question_form.question_type }}
+                            {% if question_form.question_type.errors %}
+                            <p class="text-red-500 text-xs italic mt-1">{{ question_form.question_type.errors }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ question_form.points.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Points</label>
+                            {{ question_form.points }}
+                            {% if question_form.points.errors %}
+                            <p class="text-red-500 text-xs italic mt-1">{{ question_form.points.errors }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if question_form.DELETE %}
+                        <div class="flex items-center mt-2">
+                            {{ question_form.DELETE }}
+                            <label for="{{ question_form.DELETE.id_for_label }}" class="ml-2 text-red-600 text-sm">Delete this question</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="button" id="add-question" class="mt-2 bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded text-sm">
+                    Add Question
+                </button>
+            </div>
+            
+            <div class="flex items-center justify-between pt-6">
+                <a href="{% url 'courses:course_detail' course_id=course.id %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Create Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addQuestionBtn = document.getElementById('add-question');
+        const questionsContainer = document.getElementById('questions-container');
+        const totalFormsInput = document.getElementById('id_question_set-TOTAL_FORMS');
+        
+        addQuestionBtn.addEventListener('click', function() {
+            const questionForms = questionsContainer.getElementsByClassName('question-form');
+            const formCount = questionForms.length;
+            const newForm = questionForms[0].cloneNode(true);
+            
+            // Update form index
+            newForm.innerHTML = newForm.innerHTML.replace(/-0-/g, `-${formCount}-`);
+            newForm.innerHTML = newForm.innerHTML.replace(/\[0\]/g, `[${formCount}]`);
+            
+            // Clear input values
+            newForm.querySelectorAll('input[type="text"], textarea').forEach(input => {
+                input.value = '';
+            });
+            
+            // Update question number
+            const questionTitle = newForm.querySelector('h3');
+            questionTitle.textContent = `Question ${formCount + 1}`;
+            
+            // Add the new form
+            questionsContainer.appendChild(newForm);
+            
+            // Update total forms count
+            totalFormsInput.value = formCount + 1;
+        });
+    });
+</script>
+{% endblock %}

@@ -43,10 +43,12 @@ INSTALLED_APPS = [
     # Our apps
     'accounts',
     'courses',
+    'courses.templatetags',  # Add this line to register templatetags
     'compiler',
     'assignments',
     'discussions',
     'certificates',
+    'template_utils',  # New app for template tags
 ]
 
 MIDDLEWARE = [
@@ -69,9 +71,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csrf',
             ],
         },
     },
@@ -85,16 +89,8 @@ WSGI_APPLICATION = 'elearning_platform.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGDATABASE'),
-        'USER': os.environ.get('PGUSER'),
-        'PASSWORD': os.environ.get('PGPASSWORD'),
-        'HOST': os.environ.get('PGHOST'),
-        'PORT': os.environ.get('PGPORT'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
-        'CONN_MAX_AGE': 0,  # Close database connections immediately
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -158,16 +154,23 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# CSRF Settings for Replit
+# CSRF Settings for Replit and local development
 CSRF_TRUSTED_ORIGINS = [
     "https://*.replit.dev",
     "https://*.replit.co",
     "http://localhost:5000",
     "http://127.0.0.1:5000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 # Additional security settings for Replit
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+# Session and CSRF settings
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_USE_SESSIONS = True  # Store CSRF token in the session instead of cookie
 
 # REST Framework settings
 REST_FRAMEWORK = {
@@ -186,7 +189,16 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Judge0 API Configuration (for code compilation)
 JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com'
-JUDGE0_API_KEY = ''  # Will be set via environment variable later
+JUDGE0_API_KEY = os.environ.get('JUDGE0_API_KEY', '')  # Set via environment variable
+
+# Import compiler settings
+from compiler.settings import (
+    EXECUTION_TIMEOUT,
+    MAX_CODE_SIZE,
+    MAX_STDIN_SIZE,
+    JUDGE0_LANGUAGE_MAP,
+    JUDGE0_STATUS_MAP
+)
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'

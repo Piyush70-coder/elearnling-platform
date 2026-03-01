@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Lecture - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Add Lecture to {{ course.title }}</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <!-- Title -->
+            <div>
+                <label for="{{ form.title.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Lecture Title</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.title.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.description.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">Brief description of the lecture content.</p>
+            </div>
+            
+            <!-- Content Type -->
+            <div>
+                <label for="{{ form.content_type.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Content Type</label>
+                {{ form.content_type }}
+                {% if form.content_type.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.content_type.errors }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Video URL (for video content type) -->
+            <div id="video-url-field" style="display: none;">
+                <label for="{{ form.content_url.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Video URL</label>
+                {{ form.content_url }}
+                {% if form.content_url.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.content_url.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">YouTube, Vimeo, or direct video URL.</p>
+                
+                <div class="mt-4">
+                    <label for="{{ form.video_file.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Or Upload Video File</label>
+                    {{ form.video_file }}
+                    {% if form.video_file.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.video_file.errors }}</p>
+                    {% endif %}
+                    <p class="text-gray-500 text-xs mt-1">Upload MP4, AVI, MOV, WMV, FLV, or WebM video files.</p>
+                </div>
+            </div>
+            
+            <!-- File Upload (for PDF content type) -->
+            <div id="file-upload-field" style="display: none;">
+                <label for="{{ form.content_file.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Upload File</label>
+                {{ form.content_file }}
+                {% if form.content_file.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.content_file.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">Upload PDF, DOCX, or other files.</p>
+            </div>
+            
+            <!-- Text Content (for text content type) -->
+            <div id="text-content-field" style="display: none;">
+                <label for="{{ form.content_text.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Text Content</label>
+                {{ form.content_text }}
+                {% if form.content_text.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.content_text.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">Write your lecture content here. You can use Markdown formatting.</p>
+            </div>
+            
+            <!-- Order -->
+            <div>
+                <label for="{{ form.order.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Lecture Order</label>
+                {{ form.order }}
+                {% if form.order.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.order.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">Order of this lecture in the course (1, 2, 3, etc.).</p>
+            </div>
+            
+            <!-- Duration -->
+            <div>
+                <label for="{{ form.duration_minutes.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Duration (minutes)</label>
+                {{ form.duration_minutes }}
+                {% if form.duration_minutes.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.duration_minutes.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1">Estimated duration of the lecture in minutes.</p>
+            </div>
+            
+            <!-- Is Free -->
+            <div class="flex items-center">
+                {{ form.is_free }}
+                <label for="{{ form.is_free.id_for_label }}" class="ml-2 text-gray-700 text-sm font-bold">Free Preview</label>
+                {% if form.is_free.errors %}
+                <p class="text-red-500 text-xs italic mt-1">{{ form.is_free.errors }}</p>
+                {% endif %}
+                <p class="text-gray-500 text-xs mt-1 ml-2">Check if this lecture should be available as a free preview.</p>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4">
+                <a href="{% url 'courses:manage_lectures' course.id %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Add Lecture
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contentTypeSelect = document.getElementById('{{ form.content_type.id_for_label }}');
+    const videoUrlField = document.getElementById('video-url-field');
+    const fileUploadField = document.getElementById('file-upload-field');
+    const textContentField = document.getElementById('text-content-field');
+    
+    function toggleContentFields() {
+        const selectedType = contentTypeSelect.value;
+        
+        // Hide all fields first
+        videoUrlField.style.display = 'none';
+        fileUploadField.style.display = 'none';
+        textContentField.style.display = 'none';
+        
+        // Show relevant field based on selection
+        if (selectedType === 'video') {
+            videoUrlField.style.display = 'block';
+        } else if (selectedType === 'pdf') {
+            fileUploadField.style.display = 'block';
+        } else if (selectedType === 'text') {
+            textContentField.style.display = 'block';
+        }
+    }
+    
+    // Add event listener for content type changes
+    if (contentTypeSelect) {
+        contentTypeSelect.addEventListener('change', toggleContentFields);
+        // Initialize on page load
+        toggleContentFields();
+    }
+});
+</script>
+{% endblock %}

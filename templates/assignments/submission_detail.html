@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Submission Details | {{ submission.assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Submission Header -->
+    <div class="mb-8">
+        <div class="flex items-center mb-2">
+            <a href="{% url 'assignments:assignment_detail' submission.assignment.id %}" class="text-indigo-600 hover:text-indigo-900 mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Back to Assignment
+            </a>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">Submission Details</h1>
+        <p class="text-sm text-gray-600 mt-1">{{ submission.assignment.title }} | {{ submission.assignment.course.title }}</p>
+    </div>
+
+    <!-- Submission Info -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Submission Date</h3>
+                <p class="mt-1 text-lg">{{ submission.submitted_at|date:"F j, Y, g:i a" }}</p>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Status</h3>
+                <p class="mt-1">
+                    <span class="px-2 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                        {% if submission.status == 'accepted' %}bg-green-100 text-green-800{% endif %}
+                        {% if submission.status == 'wrong_answer' %}bg-red-100 text-red-800{% endif %}
+                        {% if submission.status == 'pending' or submission.status == 'running' %}bg-yellow-100 text-yellow-800{% endif %}
+                        {% if submission.status == 'compilation_error' %}bg-orange-100 text-orange-800{% endif %}
+                        {% if submission.status == 'runtime_error' %}bg-red-100 text-red-800{% endif %}
+                        {% if submission.status == 'time_limit_exceeded' %}bg-purple-100 text-purple-800{% endif %}
+                        {% if submission.status == 'memory_limit_exceeded' %}bg-blue-100 text-blue-800{% endif %}
+                    ">
+                        {{ submission.get_status_display }}
+                    </span>
+                </p>
+            </div>
+            <div>
+                <h3 class="text-sm font-medium text-gray-500">Score</h3>
+                <p class="mt-1 text-lg">{{ submission.score|floatformat:1 }} / {{ submission.assignment.max_score }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compilation Error (if any) -->
+    {% if submission.status == 'compilation_error' and submission.compilation_output %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-red-600">Compilation Error</h2>
+        <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+            <pre class="whitespace-pre-wrap text-red-600 font-mono text-sm">{{ submission.compilation_output }}</pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Error Message (if any) -->
+    {% if submission.error_message %}
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-red-600">Error</h2>
+        <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+            <pre class="whitespace-pre-wrap text-red-600 font-mono text-sm">{{ submission.error_message }}</pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Test Case Results -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Test Case Results</h2>
+        
+        {% if results %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test Case</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Execution Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memory Used</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for result in results %}
+                    <tr class="hover:bg-gray-50 cursor-pointer js-test-result" data-result-id="{{ result.id }}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            Test Case {{ forloop.counter }}
+                            {% if not result.test_case.is_hidden %}
+                            <span class="ml-2 text-xs text-gray-400">(Sample)</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                {% if result.status == 'accepted' %}bg-green-100 text-green-800{% endif %}
+                                {% if result.status == 'wrong_answer' %}bg-red-100 text-red-800{% endif %}
+                                {% if result.status == 'pending' or result.status == 'running' %}bg-yellow-100 text-yellow-800{% endif %}
+                                {% if result.status == 'compilation_error' %}bg-orange-100 text-orange-800{% endif %}
+                                {% if result.status == 'runtime_error' %}bg-red-100 text-red-800{% endif %}
+                                {% if result.status == 'time_limit_exceeded' %}bg-purple-100 text-purple-800{% endif %}
+                                {% if result.status == 'memory_limit_exceeded' %}bg-blue-100 text-blue-800{% endif %}
+                            ">
+                                {{ result.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ result.execution_time|floatformat:3 }} sec
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ result.memory_used|floatformat:2 }} MB
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500">No test case results available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Submitted Code -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Submitted Code</h2>
+        <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+            <pre class="whitespace-pre-wrap font-mono text-sm">{{ submission.code }}</pre>
+        </div>
+    </div>
+</div>
+
+<!-- Test Case Detail Modal -->
+<div id="test-case-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full">
+        <div class="flex justify-between items-start">
+            <h3 class="text-lg font-medium" id="test-case-title">Test Case Details</h3>
+            <button type="button" id="close-test-modal" class="text-gray-400 hover:text-gray-500">
+                <span class="sr-only">Close</span>
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="mt-4" id="test-case-content">
+            <!-- Test case content will be inserted here -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const testCaseModal = document.getElementById('test-case-modal');
+        const closeTestModalButton = document.getElementById('close-test-modal');
+        const testCaseTitle = document.getElementById('test-case-title');
+        const testCaseContent = document.getElementById('test-case-content');
+        const testResultRows = document.querySelectorAll('.js-test-result');
+        
+        // Show test case details
+        testResultRows.forEach(row => {
+            row.addEventListener('click', function() {
+                const resultId = this.getAttribute('data-result-id');
+                const testCaseNumber = this.querySelector('td:first-child').textContent.trim();
+                
+                // Set test case title
+                testCaseTitle.textContent = testCaseNumber;
+                
+                // Get test case details
+                fetch(`/assignments/test-result/${resultId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Set test case content
+                        let content = `
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Input</h4>
+                                    <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                                        <pre class="whitespace-pre-wrap font-mono text-sm">${data.input || 'No input'}</pre>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-500 mb-2">Expected Output</h4>
+                                    <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                                        <pre class="whitespace-pre-wrap font-mono text-sm">${data.expected_output || 'No expected output'}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-gray-500 mb-2">Your Output</h4>
+                                <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                                    <pre class="whitespace-pre-wrap font-mono text-sm">${data.output || 'No output'}</pre>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Add error message if any
+                        if (data.error_message) {
+                            content += `
+                                <div class="mt-4">
+                                    <h4 class="text-sm font-medium text-red-500 mb-2">Error</h4>
+                                    <div class="bg-red-50 p-4 rounded-md overflow-x-auto">
+                                        <pre class="whitespace-pre-wrap font-mono text-sm text-red-600">${data.error_message}</pre>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        testCaseContent.innerHTML = content;
+                    } else {
+                        testCaseContent.innerHTML = `<p class="text-red-500">${data.error}</p>`;
+                    }
+                    
+                    // Show modal
+                    testCaseModal.classList.remove('hidden');
+                })
+                .catch(error => {
+                    testCaseContent.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                    testCaseModal.classList.remove('hidden');
+                });
+            });
+        });
+        
+        // Close modal
+        closeTestModalButton.addEventListener('click', function() {
+            testCaseModal.classList.add('hidden');
+        });
+    });
+</script>
+{% endblock %}

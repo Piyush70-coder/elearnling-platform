@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Course{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Edit Course: {{ course.title }}</h1>
+        
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Title -->
+                <div class="col-span-2">
+                    <label for="{{ form.title.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.title.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Description -->
+                <div class="col-span-2">
+                    <label for="{{ form.description.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.description.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Category -->
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.category.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Level -->
+                <div>
+                    <label for="{{ form.level.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Level</label>
+                    {{ form.level }}
+                    {% if form.level.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.level.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Price -->
+                <div>
+                    <label for="{{ form.price.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Price ($)</label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.price.errors }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Thumbnail -->
+                <div>
+                    <label for="{{ form.thumbnail.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">Thumbnail</label>
+                    {% if course.thumbnail %}
+                    <div class="mb-2">
+                        <img src="{{ course.thumbnail.url }}" alt="Current thumbnail" class="h-20 w-auto object-cover rounded">
+                        <p class="text-sm text-gray-500">Current thumbnail</p>
+                    </div>
+                    {% endif %}
+                    {{ form.thumbnail }}
+                    {% if form.thumbnail.errors %}
+                    <p class="text-red-500 text-xs italic mt-1">{{ form.thumbnail.errors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4">
+                <a href="{% url 'courses:course_detail' course.id %}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Update Course
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

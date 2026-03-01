@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Explore Courses</h1>
+        {% if user.is_authenticated and user.role == 'teacher' %}
+        <a href="{% url 'courses:create_course' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Create Course
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-8 bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">Filter Courses</h2>
+        <form method="get" action="{% url 'courses:course_list' %}" class="flex flex-col space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="search">Search</label>
+                    <input type="text" id="search" name="search" placeholder="Search courses..." class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="{{ search_query|default:'' }}">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="category">Category</label>
+                    <select id="category" name="category" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">All Categories</option>
+                        <option value="programming" {% if current_category == 'programming' %}selected{% endif %}>Programming</option>
+                        <option value="data-science" {% if current_category == 'data-science' %}selected{% endif %}>Data Science</option>
+                        <option value="web-development" {% if current_category == 'web-development' %}selected{% endif %}>Web Development</option>
+                        <option value="mobile-development" {% if current_category == 'mobile-development' %}selected{% endif %}>Mobile Development</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="difficulty">Difficulty</label>
+                    <select id="difficulty" name="difficulty" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">All Levels</option>
+                        {% for value, name in difficulty_levels.items %}
+                            <option value="{{ value }}" {% if selected_difficulty == value %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="language">Language</label>
+                    <select id="language" name="language" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">All Languages</option>
+                        {% for value, name in programming_languages.items %}
+                            <option value="{{ value }}" {% if selected_language == value %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-start-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="sort">Sort By</label>
+                    <select id="sort" name="sort" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="newest" {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>Newest</option>
+                        <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                        <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end space-x-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Apply Filters
+                </button>
+                <a href="{% url 'courses:course_list' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                    Clear Filters
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Course Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for course in page_obj %}
+        <div class="bg-white rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:transform hover:scale-105">
+            {% if course.thumbnail %}
+            <img class="w-full h-48 object-cover" src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+            {% else %}
+            <div class="w-full h-48 bg-gray-300 flex items-center justify-center">
+                <span class="text-gray-500">No Image</span>
+            </div>
+            {% endif %}
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ course.category }}</span>
+                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ course.difficulty_level }}</span>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">{{ course.title }}</h2>
+                <p class="text-gray-600 text-sm mb-4">{{ course.description|truncatechars:100 }}</p>
+                <div class="flex items-center mb-4">
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= course.avg_rating %}
+                        <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        {% else %}
+                        <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-gray-600 text-sm ml-2">({{ course.reviews.count }} reviews)</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img class="w-8 h-8 rounded-full mr-2" src="{{ course.instructor.profile_picture.url }}" alt="{{ course.instructor.get_full_name }}" onerror="this.src='https://via.placeholder.com/40';">
+                        <span class="text-sm text-gray-700">{{ course.instructor.get_full_name }}</span>
+                    </div>
+                    {% if course.price > 0 %}
+                    <span class="text-lg font-bold text-gray-900">${{ course.price }}</span>
+                    {% else %}
+                    <span class="text-lg font-bold text-green-600">Free</span>
+                    {% endif %}
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'courses:course_detail' course_id=course.id %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-center">
+                        View Course
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12">
+            <div class="mb-4">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">No Courses Found</h3>
+            <p class="text-gray-500 mb-4">Try adjusting your search or filter criteria</p>
+            <a href="{% url 'courses:course_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Reset Filters
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-8 flex justify-center">
+        <nav class="inline-flex rounded-md shadow">
+            {% if page_obj.has_previous %}
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if current_category %}category={{ current_category }}&{% endif %}{% if selected_difficulty %}difficulty={{ selected_difficulty }}&{% endif %}{% if selected_language %}language={{ selected_language }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ page_obj.previous_page_number }}" class="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                <span class="px-3 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">{{ i }}</span>
+                {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if current_category %}category={{ current_category }}&{% endif %}{% if selected_difficulty %}difficulty={{ selected_difficulty }}&{% endif %}{% if selected_language %}language={{ selected_language }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ i }}" class="px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if current_category %}category={{ current_category }}&{% endif %}{% if selected_difficulty %}difficulty={{ selected_difficulty }}&{% endif %}{% if selected_language %}language={{ selected_language }}&{% endif %}{% if current_sort %}sort={{ current_sort }}&{% endif %}page={{ page_obj.next_page_number }}" class="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // JavaScript for filtering and sorting courses
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.getElementById('category');
+        const levelSelect = document.getElementById('level');
+        const sortSelect = document.getElementById('sort');
+        
+        // Add event listeners for filter changes
+        [categorySelect, levelSelect, sortSelect].forEach(select => {
+            select.addEventListener('change', function() {
+                // In a real implementation, this would filter the courses
+                // For now, we'll just reload the page with query parameters
+                const url = new URL(window.location);
+                url.searchParams.set('category', categorySelect.value);
+                url.searchParams.set('level', levelSelect.value);
+                url.searchParams.set('sort', sortSelect.value);
+                window.location.href = url.toString();
+            });
+        });
+    });
+</script>
+{% endblock %}

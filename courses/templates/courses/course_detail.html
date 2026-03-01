@@ -1,0 +1,499 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Main Content -->
+        <div class="lg:w-2/3">
+            <!-- Course Header -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="relative">
+                    {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-full h-64 object-cover">
+                    {% else %}
+                        <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-500">No thumbnail available</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                        <div class="flex items-center text-white">
+                            <span class="bg-blue-600 text-xs font-semibold px-2 py-1 rounded mr-2">{{ course.get_category_display }}</span>
+                            <span class="bg-gray-700 text-xs font-semibold px-2 py-1 rounded mr-2">{{ course.get_difficulty_level_display }}</span>
+                            <span class="bg-gray-700 text-xs font-semibold px-2 py-1 rounded">{{ course.get_programming_language_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex justify-between items-start">
+                        <h1 class="text-3xl font-bold text-gray-800">{{ course.title }}</h1>
+                        <div>
+                            {% if course.is_free %}
+                                <span class="bg-green-100 text-green-800 text-lg font-semibold px-3 py-1 rounded">Free</span>
+                            {% else %}
+                                <span class="bg-blue-100 text-blue-800 text-lg font-semibold px-3 py-1 rounded">${{ course.price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mt-2">
+                        <div class="flex items-center">
+                            {% with avg_rating=course.reviews.all|dictsort:"rating"|length %}
+                                {% if avg_rating > 0 %}
+                                    <div class="flex items-center">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= avg_rating %}
+                                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                            {% else %}
+                                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                </svg>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span class="ml-1 text-gray-600 text-sm">({{ course.reviews.count }} reviews)</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-500 text-sm">No reviews yet</span>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <span class="mx-2 text-gray-300">|</span>
+                        
+                        <div class="text-gray-600 text-sm">
+                            {{ course.enrollments.filter.count }} students enrolled
+                        </div>
+                        
+                        <span class="mx-2 text-gray-300">|</span>
+                        
+                        <div class="text-gray-600 text-sm">
+                            Created by {{ course.instructor.get_full_name|default:course.instructor.username }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h2 class="text-xl font-semibold mb-2">About This Course</h2>
+                        <div class="prose max-w-none">
+                            {{ course.description|safe }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex flex-wrap gap-4">
+                        {% if is_enrolled %}
+                            <a href="{% url 'courses:view_lecture' lecture_id=lectures.first.id %}" 
+                               class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium">
+                                Continue Learning
+                            </a>
+                            
+                            <a href="{% url 'courses:quiz_list' course_id=course.id %}" 
+                               class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-medium">
+                                Take Quizzes
+                            </a>
+                            
+                            <form method="post" action="{% url 'courses:unenroll_course' course_id=course.id %}" 
+                                  onsubmit="return confirm('Are you sure you want to unenroll from this course?');">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-medium">
+                                    Unenroll
+                                </button>
+                            </form>
+                        {% elif request.user.role == 'student' %}
+                            <form method="post" action="{% url 'courses:enroll_course' course_id=course.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium">
+                                    {% if course.is_free %}Enroll Now - Free{% else %}Enroll Now - ${{ course.price }}{% endif %}
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        {% if is_instructor %}
+                            <a href="{% url 'courses:edit_course' course_id=course.id %}" 
+                               class="bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-6 rounded-lg font-medium">
+                                Edit Course
+                            </a>
+                            
+                            <a href="{% url 'courses:create_lecture' course_id=course.id %}" 
+                               class="bg-red-600 hover:bg-red-700 text-white py-3 px-6 rounded-lg font-medium">
+                                <i class="fas fa-video mr-2"></i>Upload Lecture
+                            </a>
+                            
+                            <a href="{% url 'courses:manage_lectures' course_id=course.id %}" 
+                               class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium">
+                                Manage Lectures
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions for Instructors -->
+            {% if is_instructor %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Upload Lecture Video -->
+                        <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200 hover:bg-red-100 transition-colors cursor-pointer" onclick="window.location.href='{% url 'courses:create_lecture' course_id=course.id %}'">
+                            <div class="flex items-center">
+                                <i class="fas fa-video text-red-500 text-2xl mr-3"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Upload Lecture Video</p>
+                                    <p class="text-xs text-gray-500">Add video content</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-red-500"></i>
+                        </div>
+                        
+                        <!-- Upload Assignment PDF -->
+                        <div class="flex items-center justify-between p-4 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer" onclick="window.location.href='{% url 'assignments:upload_course_assignment' course_id=course.id %}'">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-upload text-orange-500 text-2xl mr-3"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Upload Assignment PDF</p>
+                                    <p class="text-xs text-gray-500">Add assignments</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-orange-500"></i>
+                        </div>
+                        
+                        <!-- Create Quiz -->
+                        <div class="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover:bg-yellow-100 transition-colors cursor-pointer" onclick="window.location.href='{% url 'courses:create_quiz' course_id=course.id %}'">
+                            <div class="flex items-center">
+                                <i class="fas fa-question-circle text-yellow-500 text-2xl mr-3"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Create Quiz</p>
+                                    <p class="text-xs text-gray-500">Test students</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-yellow-500"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Quick Actions -->
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- View Analytics -->
+                        <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer" onclick="window.location.href='{% url 'courses:instructor_courses' %}'">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-bar text-blue-500 text-2xl mr-3"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">View Analytics</p>
+                                    <p class="text-xs text-gray-500">Track performance</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-blue-500"></i>
+                        </div>
+                        
+                        <!-- Manage Students -->
+                        <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200 hover:bg-green-100 transition-colors cursor-pointer" onclick="window.location.href='{% url 'courses:course_detail' course_id=course.id %}#enrolled-students'">
+                            <div class="flex items-center">
+                                <i class="fas fa-users text-green-500 text-2xl mr-3"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Manage Students</p>
+                                    <p class="text-xs text-gray-500">View enrollments</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-arrow-right text-green-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Course Content -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold">Course Content</h2>
+                    <p class="text-gray-600 mt-1">{{ lectures|length }} lectures</p>
+                </div>
+                
+                <div class="divide-y divide-gray-200">
+                    {% for lecture in lectures %}
+                        <div class="p-4 hover:bg-gray-50">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-gray-500">{{ forloop.counter }}.</span>
+                                    <div>
+                                        <h3 class="font-medium">{{ lecture.title }}</h3>
+                                        <p class="text-sm text-gray-500">
+                                            {% if lecture.content_type == 'video' %}
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Video
+                                                </span>
+                                            {% elif lecture.content_type == 'pdf' %}
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    PDF
+                                                </span>
+                                            {% else %}
+                                                <span class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    Text
+                                                </span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    {% if is_enrolled or is_instructor or lecture.is_free %}
+                                        <a href="{% url 'courses:view_lecture' lecture_id=lecture.id %}" 
+                                           class="text-blue-600 hover:text-blue-800">
+                                            View
+                                        </a>
+                                    {% else %}
+                                        {% if lecture.is_free %}
+                                            <a href="{% url 'courses:view_lecture' lecture_id=lecture.id %}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                Preview
+                                            </a>
+                                        {% else %}
+                                            <span class="text-gray-400">Locked</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if is_enrolled and lecture_progress and lecture_progress|get_item:lecture.id %}
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-green-600 h-2 rounded-full" style="width: {% if lecture_progress|get_item:lecture.id.is_completed %}100{% else %}0{% endif %}%"></div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="p-6 text-center text-gray-500">
+                            No lectures available for this course yet.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Reviews Section -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-xl font-semibold">Student Reviews</h2>
+                    {% if is_enrolled %}
+                        <a href="{% url 'courses:add_review' course_id=course.id %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                            Write a Review
+                        </a>
+                    {% endif %}
+                </div>
+                
+                <div class="p-6">
+                    {% if course.reviews.all %}
+                        <div class="space-y-6">
+                            {% for review in course.reviews.all %}
+                                <div class="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="font-medium">{{ review.title }}</h3>
+                                            <div class="flex items-center mt-1">
+                                                <div class="flex">
+                                                    {% for i in "12345"|make_list %}
+                                                        {% if forloop.counter <= review.rating %}
+                                                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                            </svg>
+                                                        {% else %}
+                                                            <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                            </svg>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                                <span class="text-xs text-gray-500 ml-2">{{ review.created_at|date:"M d, Y" }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-sm text-gray-600">
+                                            {{ review.student.get_full_name|default:review.student.username }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <p>{{ review.content }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <p>No reviews yet. {% if is_enrolled %}Be the first to review this course!{% endif %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:w-1/3">
+            <!-- Course Stats -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold">Course Information</h2>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Created</p>
+                            <p>{{ course.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Language</p>
+                            <p>{{ course.get_programming_language_display }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Difficulty</p>
+                            <p>{{ course.get_difficulty_level_display }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Students</p>
+                            <p>{{ course.enrollments.filter.count }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Lectures</p>
+                            <p>{{ lectures|length }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-sm text-gray-500">Quizzes</p>
+                            <p>{{ course.quizzes.count }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Instructor Info -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-semibold">About the Instructor</h2>
+                </div>
+                
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold text-xl mr-4">
+                            {{ course.instructor.first_name|first|upper }}{{ course.instructor.last_name|first|upper }}
+                        </div>
+                        <div>
+                            <h3 class="font-medium">{{ course.instructor.get_full_name|default:course.instructor.username }}</h3>
+                            <p class="text-sm text-gray-500">{{ course.instructor.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600">
+                        {% if course.instructor.profile.bio %}
+                            {{ course.instructor.profile.bio }}
+                        {% else %}
+                            No instructor bio available.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add enhanced interactions for quick action cards
+    const quickActionCards = document.querySelectorAll('[onclick*="window.location.href"]');
+    
+    quickActionCards.forEach(card => {
+        // Add click animation
+        card.addEventListener('click', function(e) {
+            // Add a subtle animation
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 150);
+        });
+        
+        // Add hover effects
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Add loading state for form submissions
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                submitBtn.disabled = true;
+            }
+        });
+    });
+    
+    // Smooth scroll for anchor links
+    const anchorLinks = document.querySelectorAll('a[href^="#"]');
+    anchorLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results - {{ quiz_attempt.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">Quiz Results: {{ quiz_attempt.quiz.title }}</h1>
+                <div class="{% if passed %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} py-1 px-3 rounded-full font-medium">
+                    {% if passed %}Passed{% else %}Failed{% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div class="p-3 bg-gray-50 rounded">
+                    <p class="text-sm text-gray-500">Score</p>
+                    <p class="text-xl font-bold">{{ quiz_attempt.score }}%</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <p class="text-sm text-gray-500">Passing Score</p>
+                    <p class="text-xl font-bold">{{ quiz_attempt.quiz.passing_score }}%</p>
+                </div>
+                <div class="p-3 bg-gray-50 rounded">
+                    <p class="text-sm text-gray-500">Time Taken</p>
+                    <p class="text-xl font-bold">
+                        {% if quiz_attempt.completed_at and quiz_attempt.started_at %}
+                            {{ quiz_attempt.completed_at|timeuntil:quiz_attempt.started_at }}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <h2 class="text-xl font-semibold mb-4">Question Results</h2>
+            
+            {% for answer in student_answers %}
+                <div class="mb-6 p-4 {% if answer.points_earned == answer.question.points %}bg-green-50 border-l-4 border-green-500{% elif answer.points_earned > 0 %}bg-yellow-50 border-l-4 border-yellow-500{% else %}bg-red-50 border-l-4 border-red-500{% endif %} rounded-lg">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-lg font-medium">Question {{ forloop.counter }}: {{ answer.question.text }}</h3>
+                        <div class="text-right">
+                            <span class="font-bold">{{ answer.points_earned }}/{{ answer.question.points }}</span>
+                            <span class="text-sm text-gray-500 block">points</span>
+                        </div>
+                    </div>
+                    
+                    {% if answer.question.question_type in 'multiple_choice,true_false' %}
+                        <div class="mt-3">
+                            <p class="text-sm font-medium mb-1">Your answer:</p>
+                            <ul class="list-disc list-inside pl-2">
+                                {% for selected in answer.selected_answers.all %}
+                                    <li class="{% if selected.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                        {{ selected.text }}
+                                        {% if selected.is_correct %}
+                                            <span class="text-green-600">✓</span>
+                                        {% else %}
+                                            <span class="text-red-600">✗</span>
+                                        {% endif %}
+                                    </li>
+                                {% empty %}
+                                    <li class="text-gray-500">No answer selected</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <p class="text-sm font-medium mb-1">Correct answer:</p>
+                            <ul class="list-disc list-inside pl-2">
+                                {% for correct_answer in answer.question.answers.all %}
+                                    {% if correct_answer.is_correct %}
+                                        <li class="text-green-600">{{ correct_answer.text }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        
+                    {% elif answer.question.question_type in 'short_answer,coding' %}
+                        <div class="mt-3">
+                            <p class="text-sm font-medium mb-1">Your answer:</p>
+                            <div class="bg-gray-100 p-3 rounded">
+                                <pre class="whitespace-pre-wrap">{{ answer.text_answer|default:"No answer provided" }}</pre>
+                            </div>
+                        </div>
+                        
+                        {% if answer.instructor_comment %}
+                            <div class="mt-3">
+                                <p class="text-sm font-medium mb-1">Instructor feedback:</p>
+                                <div class="bg-blue-50 p-3 rounded">
+                                    {{ answer.instructor_comment }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if answer.question.explanation %}
+                        <div class="mt-3 bg-blue-50 p-3 rounded">
+                            <p class="text-sm font-medium mb-1">Explanation:</p>
+                            <p>{{ answer.question.explanation }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="mt-6 flex justify-between">
+                <a href="{% url 'courses:quiz_list' course_id=quiz_attempt.quiz.course.id %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                    Back to Quizzes
+                </a>
+                
+                {% if not passed and quiz_attempt.quiz.attempts_allowed > quiz_attempt.student.quizattempt_set.filter(quiz=quiz_attempt.quiz).count %}
+                    <a href="{% url 'courses:start_quiz' quiz_id=quiz_attempt.quiz.id %}" 
+                       class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
+                        Try Again
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

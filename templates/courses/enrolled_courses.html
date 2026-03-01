@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}My Enrolled Courses{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">My Enrolled Courses</h1>
+        
+        <a href="{% url 'courses:course_list' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 ease-in-out">
+            <i class="fas fa-search mr-2"></i> Browse More Courses
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="{% if message.tags == 'success' %}bg-green-50 border-green-500 text-green-700{% elif message.tags == 'error' %}bg-red-50 border-red-500 text-red-700{% else %}bg-blue-50 border-blue-500 text-blue-700{% endif %} border-l-4 p-4 mb-3">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    {% if message.tags == 'success' %}
+                    <i class="fas fa-check-circle text-green-500"></i>
+                    {% elif message.tags == 'error' %}
+                    <i class="fas fa-exclamation-circle text-red-500"></i>
+                    {% else %}
+                    <i class="fas fa-info-circle text-blue-500"></i>
+                    {% endif %}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm">{{ message }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if enrollments %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for enrollment in enrollments %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+            <div class="relative">
+                {% if enrollment.course.thumbnail %}
+                <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-book text-gray-400 text-4xl"></i>
+                </div>
+                {% endif %}
+                
+                <div class="absolute top-0 right-0 mt-3 mr-3">
+                    <span class="px-2 py-1 text-xs font-bold rounded-full {% if enrollment.course.difficulty_level == 'beginner' %}bg-green-100 text-green-800{% elif enrollment.course.difficulty_level == 'intermediate' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ enrollment.course.get_difficulty_level_display }}
+                    </span>
+                </div>
+                
+                {% if enrollment.course.programming_language %}
+                <div class="absolute bottom-0 left-0 mb-3 ml-3">
+                    <span class="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
+                        {{ enrollment.course.programming_language }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="p-5 flex-grow">
+                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ enrollment.course.title }}</h3>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ enrollment.course.description|truncatechars:120 }}</p>
+                
+                <div class="flex items-center text-sm text-gray-500 mb-4">
+                    <div class="flex items-center mr-4">
+                        <i class="fas fa-user-tie mr-1"></i>
+                        <span>{{ enrollment.course.instructor.get_full_name }}</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        <span>{{ enrollment.course.duration_weeks }} weeks</span>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Your Progress</span>
+                        <span>{{ enrollment.progress_percentage|floatformat:0 }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ enrollment.progress_percentage }}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-5 py-3 bg-gray-50 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-500">
+                        <span>Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}</span>
+                    </div>
+                    <a href="{% url 'courses:course_detail' enrollment.course.id %}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Continue <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if is_paginated %}
+    <div class="mt-6 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for i in paginator.page_range %}
+            {% if page_obj.number == i %}
+            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                {{ i }}
+            </span>
+            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+            <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                {{ i }}
+            </a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+        <div class="text-gray-500 mb-4">
+            <i class="fas fa-graduation-cap text-5xl"></i>
+        </div>
+        <h2 class="text-xl font-medium text-gray-900 mb-2">No enrolled courses</h2>
+        <p class="text-gray-500 mb-6">You haven't enrolled in any courses yet. Browse our course catalog to find courses that interest you.</p>
+        <a href="{% url 'courses:course_list' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-search mr-2"></i> Browse Courses
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

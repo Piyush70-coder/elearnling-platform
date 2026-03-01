@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Assignment - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Upload New Assignment</h1>
+        <p class="text-gray-600">Course: {{ course.title }} ({{ course.code }})</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Assignment Title *</label>
+                        <input type="text" name="title" id="title" required 
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description *</label>
+                        <textarea name="description" id="description" rows="3" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="problem_statement" class="block text-sm font-medium text-gray-700">Problem Statement *</label>
+                        <textarea name="problem_statement" id="problem_statement" rows="5" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Configuration -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date *</label>
+                        <input type="datetime-local" name="due_date" id="due_date" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    
+                    <div>
+                        <label for="assignment_file" class="block text-sm font-medium text-gray-700">Assignment PDF</label>
+                        <input type="file" name="assignment_file" id="assignment_file" accept=".pdf"
+                               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        <p class="mt-1 text-xs text-gray-500">Upload a PDF file for this assignment (optional)</p>
+                    </div>
+                    
+                    <div>
+                        <label for="programming_language" class="block text-sm font-medium text-gray-700">Programming Language *</label>
+                        <select name="programming_language" id="programming_language" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            {% for value, name in programming_languages.items %}
+                                <option value="{{ value }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="difficulty" class="block text-sm font-medium text-gray-700">Difficulty Level</label>
+                        <select name="difficulty" id="difficulty"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            {% for value, name in difficulty_levels.items %}
+                                <option value="{{ value }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="max_score" class="block text-sm font-medium text-gray-700">Maximum Score</label>
+                        <input type="number" name="max_score" id="max_score" value="100" min="1" max="1000"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Code Templates -->
+            <div class="space-y-4">
+                <div>
+                    <label for="starter_code" class="block text-sm font-medium text-gray-700">Starter Code (Template for students)</label>
+                    <textarea name="starter_code" id="starter_code" rows="5"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"></textarea>
+                </div>
+                
+                <div>
+                    <label for="solution_code" class="block text-sm font-medium text-gray-700">Solution Code (Hidden from students)</label>
+                    <textarea name="solution_code" id="solution_code" rows="5"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"></textarea>
+                </div>
+            </div>
+            
+            <!-- File Uploads -->
+            <div class="space-y-4">
+                <div>
+                    <label for="assignment_file" class="block text-sm font-medium text-gray-700">Assignment Document (PDF)</label>
+                    <input type="file" name="assignment_file" id="assignment_file" accept=".pdf"
+                           class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="mt-1 text-sm text-gray-500">Upload the main assignment PDF document that will be visible to students</p>
+                </div>
+                
+                <div>
+                    <label for="files" class="block text-sm font-medium text-gray-700">Additional Files</label>
+                    <input type="file" name="files" id="files" multiple
+                           class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="mt-1 text-sm text-gray-500">Upload any additional resources for this assignment (multiple files allowed)</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'courses:course_detail' course.id %}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create Assignment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any JavaScript for form validation or enhancement here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Example: Auto-populate title in file name
+        const titleInput = document.getElementById('title');
+        const fileInput = document.getElementById('assignment_file');
+        
+        titleInput.addEventListener('change', function() {
+            if (fileInput.files.length === 0) {
+                // No file selected yet, no need to rename
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}
